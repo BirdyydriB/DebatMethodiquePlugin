@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#commentsContainer {
+	
+	.commentContainer {
+		width: 300px;
+
+		.commentBody {
+			max-height: 120px;
+		}
+
+		.commentFooter>.actionsContainer {
+			max-height: 0px;
+			overflow: hidden;
+		}
+		.commentFooter .showActionsContainer>svg {
+			top:-20px;
+		}
+	}
+}
+
+.button {
+	box-shadow: 0 2px #999;
+
+	.labelContainer>span {
+		height: 18px;
+	}
+}
+.button:active {
+  box-shadow: none;
+  transform: translateY(2px);
+}
+.button.active {
+	@apply bg-gray-200;
+}
+
+
+#debateTitleText {
+	text-overflow: ellipsis;
+}
+
+#relationsContainer {
+	.relation {
+		position: absolute;
+		fill: none;
+		stroke: grey;
+		stroke-width: 4;
+	}
+}

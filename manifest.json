@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "DebatsMethodiques",
+  "version": "1.0",
+  "description": "Get a better way to debate",
+  "author": "Birdy",
+
+  "icons": {
+    "48": "icons/DM-48.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.les-crises.fr/*"],
+      "css": [ "bin/debatmethodique.css" ],
+      "js": ["libs/jquery-3.4.1.min.js", "libs/iconify-1.0.3.min.js", "bin/parser.js", "bin/debatmethodique.js"]
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "file:///*/*"
+  ],
+  "browser_action": {
+    "default_icon": "icons/DM-48.png",
+    "default_title": "Débattre",
+    "default_popup": "module/popup.html"
+  },
+  "web_accessible_resources": [
+  ]
+}
