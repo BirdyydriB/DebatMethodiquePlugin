@@ -134,30 +134,19 @@ class CommentView {
 
     this.formatDate();
 
-    // Set bg-color/text-color for nbChildren
-    const nbChildrenClass = allSortFunctions.sortByNbChilds.commentsClass[this._commentModel.id];
-    const nbChildrenColor = allSortFunctions.sortByNbChilds.classes[nbChildrenClass].color;
+    // Set bg-color/text-color for nbChildren, nbChildrenTotal and upVote
     const nbChildrenDOM = this.commentView.find('.commentFooter>.infosContainer>.answersContainer>.iconContainer');
-    nbChildrenDOM.css('background-color', nbChildrenColor);
-    nbChildrenDOM.css('color', colors.getTextColorFromBackgroundColor(nbChildrenColor));
+    allSortFunctions.sortByNbChilds.add(this._commentModel.id, nbChildrenDOM);
 
-    // Set bg-color/text-color for nbChildrenTotal
-    const nbChildrenClassTotal = allSortFunctions.sortByNbChildsTotal.commentsClass[this._commentModel.id];
-    const nbChildrenColorTotal = allSortFunctions.sortByNbChildsTotal.classes[nbChildrenClassTotal].color;
     const allAnswersContainerDOM = this.commentView.find('.commentFooter>.infosContainer>.allAnswersContainer');
     const nbChildrenTotalDOM = allAnswersContainerDOM.find('.iconContainer');
-    nbChildrenTotalDOM.css('background-color', nbChildrenColorTotal);
-    nbChildrenTotalDOM.css('color', colors.getTextColorFromBackgroundColor(nbChildrenColorTotal));
+    allSortFunctions.sortByNbChildsTotal.add(this._commentModel.id, nbChildrenTotalDOM);
     if(commentModel.childrenCommentsId.length == commentModel.allChildren.length) {
       allAnswersContainerDOM.hide();
     }
 
-    // Set bg-color/text-color for upVote
-    const nbUpVoteClass = allSortFunctions.sortByUpVote.commentsClass[this._commentModel.id];
-    const nbUpVoteColor = allSortFunctions.sortByUpVote.classes[nbUpVoteClass].color;
     const nbUpVoteDOM = this.commentView.find('.commentFooter>.infosContainer>.upVoteContainer>.iconContainer');
-    nbUpVoteDOM.css('background-color', nbUpVoteColor);
-    nbUpVoteDOM.css('color', colors.getTextColorFromBackgroundColor(nbUpVoteColor));
+    allSortFunctions.sortByUpVote.add(this._commentModel.id, nbUpVoteDOM);
 
     // Test height & width values after selection
     this.commentView.css('width', COMMENT_EXPANDED_WIDTH);

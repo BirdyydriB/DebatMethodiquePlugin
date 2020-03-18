@@ -116,6 +116,7 @@ const colors = require("../../utils/colors");
       this._classes[i].color = colors.getGradientColor(BAD_COLOR, MIDDLE_COLOR, GOOD_COLOR, (i / (this.classes.length - 1)));
     }
   }
+
 }
 
 module.exports = {

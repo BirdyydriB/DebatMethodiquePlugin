@@ -55,19 +55,9 @@ class GraphController {
     _.each(this.graphView.commentsView, (comment, index, list) => {
       // Double click on a comment : select it
       comment.commentView.dblclick(() => {
-
-
-        // self.graphNavigator.selectComment(comment);
-        if(comment.commentModel.isFolded) {
-          self.graphModel.unfoldChildrenComments(comment.commentModel);
-        } else {
-          self.graphModel.foldChildrenComments(comment.commentModel);
-        }
-
-
-
-
+        self.graphNavigator.selectComment(comment);
       });
+      
       // Over showActionsContainer... show the actionsContainer
       comment.commentView.find('.showActionsContainer').on('mouseenter', (e) => {
         this.showActionsContainer(comment);

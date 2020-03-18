@@ -21,6 +21,7 @@ class SortByUpVote extends sort_function.SortFunction {
     super(comments, 0.01);
     this._label = localize('SORT_FUNCTION_UPVOTE_LABEL');
     this._id = 'sortByUpVote';
+    this._isActive = false;
     return this;
   }
   /**

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 #commentsContainer {
-	
+
 	.commentContainer {
 		width: 300px;
 
@@ -43,9 +43,12 @@
 
 #relationsContainer {
 	.relation {
-		position: absolute;
 		fill: none;
-		stroke: grey;
+		stroke: gray;
 		stroke-width: 4;
 	}
+}
+
+.sortFunction {
+	@apply bg-gray-600;
 }

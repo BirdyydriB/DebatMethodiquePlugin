@@ -14005,10 +14005,13 @@ video {
 }
 
 #relationsContainer .relation {
-  position: absolute;
   fill: none;
-  stroke: grey;
+  stroke: gray;
   stroke-width: 4;
+}
+
+.sortFunction {
+  background-color: #718096;
 }
 
 @media (min-width: 640px) {

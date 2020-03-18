@@ -29,11 +29,12 @@ class MenuView {
     console.log('MenuView init');
     this._graphModel = graphModel;
 
+    console.log(this._graphModel.allSortFunctions);
     $('#menuContainer').prepend(_.template(template_menu)({
       articleTitle: articleTitle,
       allSortFunctions: this._graphModel.allSortFunctions
     }));
-
+    $('.sortFunction.isActive').css('background-color', GOOD_COLOR);
     $('#menuContainer #sortFilterBar').hide();
 
     $('#menuContainer #centerSelectedButton').css('color', GOOD_COLOR);

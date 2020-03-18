@@ -41,9 +41,8 @@ module.exports = `
   <% for(var index in allSortFunctions) { %>` +
       sortFunction({
         sort_id: '<%= allSortFunctions[index].id %>',
-        sort_class: 'float-left',
-        sort_name: '<%= allSortFunctions[index].label %>',
-        sort_isActive: '<%= allSortFunctions[index].isActive %>'
+        sort_class: 'float-left' + '<% if(allSortFunctions[index].isActive) { print(" isActive") } %>',
+        sort_name: '<%= allSortFunctions[index].label %>'
       }) +`
   <% } %>
 </div>

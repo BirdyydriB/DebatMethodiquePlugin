@@ -22,6 +22,7 @@ const {
 const template_graph = require("../templates/graph");
 const relation_view = require("../views/relationView");
 const comment_view = require("../views/commentView");
+const sortFunction_view = require("../views/sortFunctionView");
 const animation_manager = require("../views/animationManager");
 const colors = require("../utils/colors");
 const { Array2D } = require('../utils/array2D');
@@ -46,6 +47,10 @@ class GraphView {
   _d3RelactionContainer; // d3 | Container of all relations views
   get d3RelactionContainer() {
     return this._d3RelactionContainer;
+  }
+  _allSortFunctions;
+  get allSortFunctions() {
+    return this._allSortFunctions;
   }
   _selectedComment; // CommentView | The current selected comment view. Only one comment is selected and there is always one selected
   get selectedComment() {
@@ -83,6 +88,7 @@ class GraphView {
     this._commentsView = {};
     this._selectedPath = [];
     this._depthColors = [];
+    this._allSortFunctions = {};
     return this;
   }
 
@@ -101,10 +107,16 @@ class GraphView {
     this._d3RelactionContainer = d3s.select('#relationsContainer')
       .append('svg:svg');
 
+    // Create sort function views
+    _.each(this._graphModel.allSortFunctions, (sortFunctionModel) => {
+      const sortFunctionView = new sortFunction_view.SortFunctionView(sortFunctionModel);
+      this._allSortFunctions[sortFunctionModel.id] = sortFunctionView;
+    });
+
     // Create commentsView
     _.each(this.graphModel.commentsModel, (comment, index) => {
       var newCommentView = new comment_view.CommentView()
-        .init(comment, $('#commentsContainer'), this.graphModel.allSortFunctions);
+        .init(comment, $('#commentsContainer'), this._allSortFunctions);
 
       this.commentsView[index] = newCommentView;
     });
@@ -122,6 +134,13 @@ class GraphView {
       // Save relation into child and parent commentView
       this.commentsView[relation.child.id].parentRelationView = relationView;
       this.commentsView[relation.parent.id].childRelationsView.push(relationView);
+    });
+
+    // Display sortFunctions colors (if isActive)
+    _.each(this._graphModel.allSortFunctions, (sortFunctionModel) => {
+      if(sortFunctionModel.isActive) {
+        this._allSortFunctions[sortFunctionModel.id].showAll();
+      }
     });
 
     // Listen to model changes

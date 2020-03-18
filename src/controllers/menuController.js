@@ -1,4 +1,11 @@
 /**
+ * Project requirements
+ */
+const {
+   GOOD_COLOR
+} = require('../parameters/constants');
+
+/**
  * Class Definition
  */
 class MenuController {
@@ -41,9 +48,18 @@ class MenuController {
       $('#menuContainer #sortFilterBar').toggle();
     });
 
-    $('#menuContainer .sortDiv').click((e) => {
-      $(e.currentTarget).toggleClass('active');
-      console.log($(e.currentTarget).attr('id'));
+    $('#menuContainer .sortFunction').click((e) => {
+      const sortFunction = this._graphController.graphView.allSortFunctions[$(e.currentTarget).attr('id')];
+      sortFunction.sortFunctionModel.isActive = !sortFunction.sortFunctionModel.isActive;
+
+      if (sortFunction.sortFunctionModel.isActive) {
+        $(e.currentTarget).css('background-color', GOOD_COLOR);
+        sortFunction.showAll();
+      }
+      else {
+        $(e.currentTarget).css('background-color', '');
+        sortFunction.hideAll();
+      }
     });
 
     return this;
