@@ -109,9 +109,7 @@ class CommentView {
     * @access public
     * @param {CommentModel} commentModel - The model of this view
     * @param {object} commentContainer - The DOM container where the comment is drawn
-    * @param {SortFunction} sortedByNbChilds - Comments sorted by number of direct childs
-    * @param {SortFunction} sortedByNbChildsTotal - Comments sorted by number of childs (total)
-    * @param {SortFunction} sortedByUpVote - Comments sorted by number of up votes
+    * @param {object} allSortFunctions - Sort functions views
     * @returns {CommentView} this
     */
   init(commentModel, commentContainer, allSortFunctions) {

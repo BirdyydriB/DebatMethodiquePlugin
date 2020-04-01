@@ -1,7 +1,7 @@
 /**
  * External libraries
  */
-var _ = require('underscore');
+const _ = require('underscore');
 
 /**
  * Project requirements
@@ -9,7 +9,7 @@ var _ = require('underscore');
 const {
    GOOD_COLOR
 } = require('../parameters/constants');
-var template_menu = require("../templates/menu");
+const template_menu = require("../templates/menu");
 
 /**
  * Class Definition
@@ -29,10 +29,9 @@ class MenuView {
     console.log('MenuView init');
     this._graphModel = graphModel;
 
-    console.log(this._graphModel.allSortFunctions);
     $('#menuContainer').prepend(_.template(template_menu)({
       articleTitle: articleTitle,
-      allSortFunctions: this._graphModel.allSortFunctions
+      allSortFunctions: this._graphModel.mainSortFunction.allSortFunctions
     }));
     $('.sortFunction.isActive').css('background-color', GOOD_COLOR);
     $('#menuContainer #sortFilterBar').hide();

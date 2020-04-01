@@ -22,15 +22,20 @@ class MenuController {
   get graphNavigator() {
     return this._graphNavigator;
   }
+  _sortedFilteredController; // Singleton | The SortedFilteredController
+  get sortedFilteredController() {
+    return this._sortedFilteredController;
+  }
 
   // --- Functions
   constructor() {
     return this;
   }
-  init(menuView, graphController, graphNavigator) {
+  init(menuView, graphController, graphNavigator, sortedFilteredController) {
     this._menuView = menuView;
     this._graphController = graphController;
     this._graphNavigator = graphNavigator;
+    this._sortedFilteredController = sortedFilteredController;
 
     $('#menuContainer #closeButton').click(() => {
       $('#mainContainer').hide();
@@ -46,19 +51,20 @@ class MenuController {
     $('#menuContainer #filterSortButton').click(() => {
       $('#menuContainer #filterSortButton').toggleClass('active');
       $('#menuContainer #sortFilterBar').toggle();
+      this.sortedFilteredController.toggle();
     });
 
     $('#menuContainer .sortFunction').click((e) => {
-      const sortFunction = this._graphController.graphView.allSortFunctions[$(e.currentTarget).attr('id')];
-      sortFunction.sortFunctionModel.isActive = !sortFunction.sortFunctionModel.isActive;
+      const sortFunctionView = this._graphController.graphView.allSortFunctionsView[$(e.currentTarget).attr('id')];
+      sortFunctionView.sortFunctionModel.isActive = !sortFunctionView.sortFunctionModel.isActive;
 
-      if (sortFunction.sortFunctionModel.isActive) {
+      if (sortFunctionView.sortFunctionModel.isActive) {
         $(e.currentTarget).css('background-color', GOOD_COLOR);
-        sortFunction.showAll();
+        sortFunctionView.showAll();
       }
       else {
         $(e.currentTarget).css('background-color', '');
-        sortFunction.hideAll();
+        sortFunctionView.hideAll();
       }
     });
 

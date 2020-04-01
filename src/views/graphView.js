@@ -48,10 +48,6 @@ class GraphView {
   get d3RelactionContainer() {
     return this._d3RelactionContainer;
   }
-  _allSortFunctions;
-  get allSortFunctions() {
-    return this._allSortFunctions;
-  }
   _selectedComment; // CommentView | The current selected comment view. Only one comment is selected and there is always one selected
   get selectedComment() {
     return this._selectedComment;
@@ -75,6 +71,10 @@ class GraphView {
   get depthColors() {
     return this._depthColors;
   }
+  _allSortFunctionsView;
+  get allSortFunctionsView() {
+    return this._allSortFunctionsView;
+  }
 
   // --- Functions
   /**
@@ -88,7 +88,7 @@ class GraphView {
     this._commentsView = {};
     this._selectedPath = [];
     this._depthColors = [];
-    this._allSortFunctions = {};
+    this._allSortFunctionsView = {};
     return this;
   }
 
@@ -108,15 +108,15 @@ class GraphView {
       .append('svg:svg');
 
     // Create sort function views
-    _.each(this._graphModel.allSortFunctions, (sortFunctionModel) => {
+    _.each(this._graphModel.mainSortFunction.allSortFunctions, (sortFunctionModel) => {
       const sortFunctionView = new sortFunction_view.SortFunctionView(sortFunctionModel);
-      this._allSortFunctions[sortFunctionModel.id] = sortFunctionView;
+      this._allSortFunctionsView[sortFunctionModel.id] = sortFunctionView;
     });
 
     // Create commentsView
     _.each(this.graphModel.commentsModel, (comment, index) => {
       var newCommentView = new comment_view.CommentView()
-        .init(comment, $('#commentsContainer'), this._allSortFunctions);
+        .init(comment, $('#commentsContainer'), this._allSortFunctionsView);
 
       this.commentsView[index] = newCommentView;
     });
@@ -137,9 +137,9 @@ class GraphView {
     });
 
     // Display sortFunctions colors (if isActive)
-    _.each(this._graphModel.allSortFunctions, (sortFunctionModel) => {
+    _.each(this._graphModel.mainSortFunction.allSortFunctions, (sortFunctionModel) => {
       if(sortFunctionModel.isActive) {
-        this._allSortFunctions[sortFunctionModel.id].showAll();
+        this._allSortFunctionsView[sortFunctionModel.id].showAll();
       }
     });
 

@@ -9,6 +9,7 @@ var graphView = require("./views/graphView");
 var graphController = require("./controllers/graphController");
 var graphNavigator = require("./controllers/graphNavigator");
 var menuController = require("./controllers/menuController");
+var sortedFilteredController = require("./controllers/sortedFilteredController");
 // browser.runtime.onMessage.addListener(main);
 
 function main(request, sender, sendResponse) {
@@ -26,7 +27,8 @@ function main(request, sender, sendResponse) {
       menuView.init(graphModel);
       graphNavigator.init(graphModel, graphView);
       graphController.init(graphModel, graphView, graphNavigator);
-      menuController.init(menuView, graphController, graphNavigator);
+      sortedFilteredController.init(graphModel, graphView);
+      menuController.init(menuView, graphController, graphNavigator, sortedFilteredController);
     }
     else {
       $('#mainContainer').show();

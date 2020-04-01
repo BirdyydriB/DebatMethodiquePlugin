@@ -59,7 +59,7 @@ class AnimationManager {
     * @param {object} elementDOM - The DOM element to animate - usually commentView.commentView
     * @param {object} targetedValues - The elements attributes targeted values
     */
-  animate(commentView, elementDOM, targetedValues) {
+  animate(commentView, elementDOM, targetedValues) {    
     const elementIsInScreen = isInScreen({
       left: parseInt(commentView.commentView.css('left')),
       top: parseInt(commentView.commentView.css('top')),

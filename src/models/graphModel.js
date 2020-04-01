@@ -8,11 +8,8 @@ const _ = require('underscore');
  */
 const comment_model = require("../models/commentModel");
 const relation_model = require("../models/relationModel");
+const main_sort_function = require("../models/sortFunctions/mainSortFunction");
 const { Array2D } = require('../utils/array2D');
-const sortByNbChilds = require("../models/sortFunctions/sortByNbChilds");
-const sortByNbChildsTotal = require("../models/sortFunctions/sortByNbChildsTotal");
-const sortByUpVote = require("../models/sortFunctions/sortByUpVote");
-
 
 /**
  * Model of the comments graph
@@ -41,10 +38,9 @@ class GraphModel {
   set rootComments(val) {
     this._rootComments = val;
   }
-
-  _allSortFunctions;
-  get allSortFunctions() {
-    return this._allSortFunctions;
+  _mainSortFunction;
+  get mainSortFunction() {
+    return this._mainSortFunction;
   }
 
   // --- Functions
@@ -70,15 +66,11 @@ class GraphModel {
   init() {
     this.initComments();
     this.initRelations();
+    this._mainSortFunction = main_sort_function;
+    this._mainSortFunction.init(this);
     this.buildGrid((commentId) => {
       return (commentId != null) ? 0 : 1;
     });
-
-    this._allSortFunctions = {
-      sortByNbChilds: new sortByNbChilds.SortByNbChilds(this._commentsModel),
-      sortByNbChildsTotal: new sortByNbChildsTotal.SortByNbChildsTotal(this._commentsModel),
-      sortByUpVote: new sortByUpVote.SortByUpVote(this._commentsModel)
-    };
 
     return this;
   }
