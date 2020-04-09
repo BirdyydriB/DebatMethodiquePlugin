@@ -6,7 +6,7 @@ module.exports = `
     </div>
   <% }
   else { %>
-    <div class="labelContainer p-1 self-stretch">
+    <div class="labelContainer pl-1 pr-1 self-stretch <%= label_class %>">
       <span class="inline-block select-none"><%= label %></span>
     </div>
   <% } %>

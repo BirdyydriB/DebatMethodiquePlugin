@@ -23,6 +23,16 @@ class MainSortFunction {
   get allSortFunctions() {
     return this._allSortFunctions;
   }
+  _commentsClass; // Object<int> | Key : the comment Id. The class of this comment
+  get commentsClass() {
+    return this._commentsClass;
+  }
+  _classes; /* Array<{color: The color of this class (btw green and red),
+                      comments: Array<commentId> | The comments in this class
+              }> | All comments, sorted by classes */
+  get classes() {
+    return this._classes;
+  }
 
   // --- Functions
   /**
@@ -42,6 +52,11 @@ class MainSortFunction {
       sortByNbChildsTotal: new sortByNbChildsTotal.SortByNbChildsTotal(this._graphModel.commentsModel),
       sortByUpVote: new sortByUpVote.SortByUpVote(this._graphModel.commentsModel)
     };
+  }
+
+  classify() {
+    this._commentsClass = this._allSortFunctions.sortByUpVote.commentsClass;
+    this._classes = this._allSortFunctions.sortByUpVote.classes;
   }
 
 }

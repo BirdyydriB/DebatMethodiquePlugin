@@ -33,6 +33,13 @@ function isInScreen(elementPosition) {
  */
 class AnimationManager {
   // --- Vars and accessors
+  _animated; // Boolean | Play animations ?
+  get animated() {
+    return this._animated;
+  }
+  set animated(val) {
+    return this._animated = val;
+  }
 
   // --- Functions
   /**
@@ -40,6 +47,7 @@ class AnimationManager {
    * @class
    */
   constructor() {
+    this._animated = true;
     return this;
   }
 
@@ -59,7 +67,7 @@ class AnimationManager {
     * @param {object} elementDOM - The DOM element to animate - usually commentView.commentView
     * @param {object} targetedValues - The elements attributes targeted values
     */
-  animate(commentView, elementDOM, targetedValues) {    
+  animate(commentView, elementDOM, targetedValues) {
     const elementIsInScreen = isInScreen({
       left: parseInt(commentView.commentView.css('left')),
       top: parseInt(commentView.commentView.css('top')),
@@ -79,7 +87,7 @@ class AnimationManager {
 
     const animationKey = commentView.commentModel.id + _.keys(targetedValues).join(',');
 
-    if (elementIsInScreen || elementWillBeInScreen) {
+    if (this._animated && (elementIsInScreen || elementWillBeInScreen)) {
       elementDOM.clearQueue(animationKey)
         .stop(animationKey)
         .animate(targetedValues, {
@@ -126,12 +134,18 @@ class AnimationManager {
     * @param {int} whereToHide.top - Top coordinate
     */
   hide(commentView, whereToHide) {
-    commentView.commentView.fadeOut({
-      duration: ANIMATION_TIME,
-      easing: 'swing',
-      queue: false
-    });
-    this.animate(commentView, commentView.commentView, whereToHide);
+    if (this._animated) {
+      commentView.commentView.fadeOut({
+        duration: ANIMATION_TIME,
+        easing: 'swing',
+        queue: false
+      });
+
+      this.animate(commentView, commentView.commentView, whereToHide);
+    }
+    else {
+      commentView.commentView.hide();
+    }
   }
 
   /**
@@ -143,13 +157,18 @@ class AnimationManager {
     * @param {int} whereToStart.top - Top coordinate
     */
   show(commentView, whereToStart) {
-    commentView.commentView.css('left', whereToStart.left);
-    commentView.commentView.css('top', whereToStart.top);
-    commentView.commentView.fadeIn({
-      duration: ANIMATION_TIME,
-      easing: 'swing',
-      queue: false
-    });
+    if (this._animated) {
+      commentView.commentView.css('left', whereToStart.left);
+      commentView.commentView.css('top', whereToStart.top);
+      commentView.commentView.fadeIn({
+        duration: ANIMATION_TIME,
+        easing: 'swing',
+        queue: false
+      });
+    }
+    else {
+      commentView.commentView.show();
+    }
   }
 
   /**
@@ -206,23 +225,30 @@ class AnimationManager {
     * @returns {int} scroll animation time
     */
   scrollMain(mainDOM, targetedValues, constantSpeed = true) {
-    const deltaTop = Math.abs(mainDOM.scrollTop() - targetedValues.scrollTop);
-    const deltaLeft = Math.abs(mainDOM.scrollLeft() - targetedValues.scrollLeft);
-    const scrollDuration = constantSpeed
-      ? Math.min(
-          Math.floor(
-            Math.sqrt(deltaTop * deltaTop + deltaLeft * deltaLeft) / SCROLL_ANIMATION_SPEED)
-        , 2 * ANIMATION_TIME)
-      : ANIMATION_TIME;
+    if(this._animated) {
+      const deltaTop = Math.abs(mainDOM.scrollTop() - targetedValues.scrollTop);
+      const deltaLeft = Math.abs(mainDOM.scrollLeft() - targetedValues.scrollLeft);
+      const scrollDuration = constantSpeed
+        ? Math.min(
+            Math.floor(
+              Math.sqrt(deltaTop * deltaTop + deltaLeft * deltaLeft) / SCROLL_ANIMATION_SPEED)
+          , 2 * ANIMATION_TIME)
+        : ANIMATION_TIME;
 
-    mainDOM.clearQueue()
-      .stop()
-      .animate(targetedValues, {
-        duration: scrollDuration,
-        easing: 'swing'
-    });
+      mainDOM.clearQueue()
+        .stop()
+        .animate(targetedValues, {
+          duration: scrollDuration,
+          easing: 'swing'
+      });
 
-    return scrollDuration;
+      return scrollDuration;
+    }
+    else {
+      mainDOM.scrollTop(targetedValues.scrollTop);
+      mainDOM.scrollLeft(targetedValues.scrollLeft);
+      return 0;
+    }
   }
 
 }

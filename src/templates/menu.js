@@ -26,6 +26,7 @@ module.exports = `
   button({
     btn_id: 'filterSortButton',
     btn_class: 'float-left',
+    label_class: 'pt-1 pb-1',
     label: localize('SORT_FILTER_BUTTON_LABEL')
   }) +
 

@@ -27,7 +27,7 @@ function main(request, sender, sendResponse) {
       menuView.init(graphModel);
       graphNavigator.init(graphModel, graphView);
       graphController.init(graphModel, graphView, graphNavigator);
-      sortedFilteredController.init(graphModel, graphView);
+      sortedFilteredController.init(graphModel, graphView, graphNavigator);
       menuController.init(menuView, graphController, graphNavigator, sortedFilteredController);
     }
     else {
@@ -40,10 +40,6 @@ function main(request, sender, sendResponse) {
 
 
 $(document).ready(function() {
-  // --- WARNING --- for development only
-  // $(document).scrollTop(11900); // Scroll to 'DebatMethodique' button
-  // --- END WARNING ---
-
   $('#DMLauncher').click(function(e) {
     scrollTopOnLaunch = $(document).scrollTop();
     console.log('start !', scrollTopOnLaunch);

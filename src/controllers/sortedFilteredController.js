@@ -7,16 +7,11 @@ const _ = require('underscore');
  * Project requirements
  */
 const {
-  COMMENT_MARGIN_VERTICAL,
-  COMMENT_MARGIN_HORIZONTAL,
-  ANIMATION_TIME,
-  GOOD_COLOR,
-  MIDDLE_COLOR,
-  BAD_COLOR
+   GOOD_COLOR
 } = require('../parameters/constants');
-const {
-  GRAPH_DISPLAY_ORIENTATION
-} = require('../parameters/parameters');
+const animation_manager = require("../views/animationManager");
+
+
 
 /**
  * When
@@ -31,6 +26,10 @@ class SortedFilteredController {
   get graphView() {
     return this._graphView;
   }
+  _graphNavigator; // Singleton | The GraphNavigator
+  get graphNavigator() {
+    return this._graphNavigator;
+  }
   _isInSortedMode; // Boolean |
 
   // --- Functions
@@ -40,7 +39,6 @@ class SortedFilteredController {
    * @returns {SortedFilteredController} this
    */
   constructor() {
-    console.log('new SortedFilteredController');
     return this;
   }
 
@@ -49,14 +47,51 @@ class SortedFilteredController {
     * @access public
     * @param {GraphModel} graphModel - The model of the graph
     * @param {GraphView} graphView - The view of the graph
+    * @param {GraphNavigator} graphNavigator - The navigation controller of the graph
     * @returns {SortedFilteredController} this
     */
-  init(graphModel, graphView) {
+  init(graphModel, graphView, graphNavigator) {
     console.log('SortedFilteredController init');
     this._graphModel = graphModel;
     this._graphView = graphView;
+    this._graphNavigator = graphNavigator;
+
+    this._graphModel.mainSortFunction.classify();
+    this.sortCommentsToContainers();
     this._isInSortedMode = false;
+
+    // Each comments : add a listener on goToGraphButton
+    _.each(this._graphView.commentsView, (commentView) => {
+      commentView.commentView.find('.goToGraphButton').click((function() {
+        // Remove outline and hide goToGraphContainer
+        commentView.commentView.trigger('mouseleave');
+        // Select comment
+        this._graphView.selectedComment = commentView;
+        // Swap view to graphView
+        this.sortToGraph();
+        // Close Sort/Filter menu
+        this._isInSortedMode = false;
+        $('#filterSortButton').removeClass('active');
+        $('#sortFilterBar').hide();
+      }).bind(this));
+    });
+
     return this;
+  }
+
+  sortCommentsToContainers() {
+    _.each(this._graphModel.mainSortFunction.classes, (sortClass) => {
+      // Create the flex container
+      const sortContainer = $('<div class="sortContainer flex flex-wrap justify-start" color="' + sortClass.color + '"></div>');
+      $('#commentsContainer').prepend(sortContainer);
+
+      _.each(sortClass.comments, (commentId) => {
+        // Put the comments in the right container
+        sortContainer.prepend(this._graphView.commentsView[commentId].commentView);
+        // And set header color
+        this._graphView.commentsView[commentId].setHeaderColor(sortClass.color);
+      });
+    });
   }
 
   toggle() {
@@ -71,40 +106,105 @@ class SortedFilteredController {
   }
 
   graphToSort() {
-    console.log('graphToSort', $('#relationsContainer'), $('#commentsContainer'));
+    // Remove graphNavigator listeners (scroll and keyboard) as we are not anymore in Graph mode
+    this._graphNavigator.removeListeners();
+    // And swap to this Sort/Filter mode, without animation
+    animation_manager.animated = false;
+
+    // Hide relations beetween comments
     $('#relationsContainer').hide();
+    // And graph coordinates
+    $('#graphCoordinates').hide();
+
+    // "show" the sortContainers
     $('#commentsContainer').addClass('flex flex-col justify-between');
-    $('#commentsContainer').prepend('<div id="container1" class="m-2 flex flex-wrap justify-start"></div>');
-    $('#commentsContainer').prepend('<div id="container2" class="m-2 flex flex-wrap justify-start"></div>');
+    $('.sortContainer').each((index, container) => {
+      $(container).addClass('m-2 border-l-3 border-solid rounded');
+      $(container).css('border-color', $(container).attr('color'));
+    });
 
-    $('.commentContainer').removeClass('absolute');
-    $('.commentContainer.border-3').removeClass('border-3');
-    $('.commentContainer.border-solid').removeClass('border-solid');
-    $('.commentContainer.rounded').removeClass('rounded');
-    $('.commentContainer').addClass('m-2');
-    $('.commentContainer').css('left', '');
-    $('.commentContainer').css('top', '');
-    $('.commentContainer').css('width', '');
-    $('.commentContainer .commentBody').css('max-height', '');
-
-    const middle = ($('.commentContainer').length / 2);
-    for(var i = 0 ; i < $('.commentContainer').length ; i++) {
-      if(i < middle) {
-        $('#container1').prepend($('.commentContainer')[i]);
-      } else {
-        $('#container2').prepend($('.commentContainer')[i]);
+    _.each(this._graphView.commentsView, (commentView) => {
+      // Remove comment selection, only available in Graph mode
+      if(commentView.selected) {
+        commentView.unselect();
       }
-    }
+      if(commentView.selectedAsParent) {
+        commentView.unselectAsParent();
+      }
+      if(commentView.selectedAsChild) {
+        commentView.unselectAsChild();
+      }
+      // All comments in Sort/Filter mode are visible
+      if(!commentView.visible) {
+        commentView.commentView.show();
+      }
+      // And have the same size
+      if(commentView.isExpanded) {
+        commentView.resize();
+      }
 
+      // Position of comment in this Sort/Filter mode, is not calculated like in Graph mode
+      commentView.commentView.removeClass('absolute');
+      commentView.commentView.css('left', '');
+      commentView.commentView.css('top', '');
+      commentView.commentView.addClass('m-2');
 
+      // Over/Out a comment : "select" it
+      commentView.commentView.mouseenter(function() {
+        $(this).css('outline-color', GOOD_COLOR);
+        $(this).css('outline-style', 'solid');
+        $(this).css('outline-width', '3px');
+
+        $(this).find('.goToGraphContainer').removeClass('hidden');
+
+        $(this).off('mouseleave');
+        $(this).mouseleave(function() {
+          $(this).css('outline-color', '');
+          $(this).css('outline-style', '');
+          $(this).css('outline-width', '');
+
+          $(this).find('.goToGraphContainer').addClass('hidden');
+        });
+      });
+    });
   }
+
   sortToGraph() {
+    // Show again relations beetween comments
     $('#relationsContainer').show();
-    $('#commentsContainer').removeClass('flex');
-    $('#commentsContainer').removeClass('flex-col');
-    $('.commentContainer').removeClass('m-2');
-    $('.commentContainer').addClass('absolute');
-    this._graphView.refresh();
+    // And graph coordinates
+    $('#graphCoordinates').show();
+
+    // "hide" the sortContainers
+    $('#commentsContainer').removeClass(['flex', 'flex-col', 'justify-between']);
+    $('.sortContainer').each((index, container) => {
+      $(container).removeClass(['m-2', 'border-l-3', 'border-solid', 'rounded']);
+      $(container).css('border-color', '');
+    });
+
+    _.each(this._graphView.commentsView, (commentView) => {
+      // Position will be calculated again
+      commentView.commentView.addClass('absolute');
+      commentView.commentView.removeClass('m-2');
+      // Hide again comments that should be hidden
+      if(!commentView.commentModel.visible) {
+        commentView.commentView.hide();
+      }
+      // Remove Over/Out "selection"
+      commentView.commentView.off('mouseenter');
+    });
+
+    // Force "reset" of selection, to re-build Graph
+    const selectedComment = this._graphView.selectedComment;
+    this._graphView.selectedComment = null;
+    this._graphNavigator.selectComment(selectedComment, false);
+    this._graphNavigator.selectCommentUpdateModel(selectedComment);
+
+    // Add scroll and keyboard listeners again, for graph navigation
+    this._graphNavigator.addListeners();
+
+    // We can animate graph again
+    animation_manager.animated = true;
   }
 
 

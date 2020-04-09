@@ -166,7 +166,7 @@ class RelationView {
     * @access public
     */
   refresh() {
-    if(this._visible) {
+    if(($('#relationsContainer').css('display') != 'none') && this._visible) {
       // Draw the path
       var positions = this.getLinkValues();
       this.d3Path.data([positions])

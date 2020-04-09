@@ -27,7 +27,16 @@ module.exports = `
 	</div>
 
 	<div class="commentFooter p-1 bg-white">
-		<div class="infosContainer flex">` +
+		<div class="goToGraphContainer hidden flex flex-no-shrink">` +
+			button({
+				btn_id: '',
+				btn_class: 'goToGraphButton',
+				label_class: '',
+				label: 'Voir dans la discussion'
+			}) + `
+		</div>
+
+		<div class="infosContainer flex flex-no-shrink">` +
 		  iconText({
 				icon_id: '',
 		    icon_class: 'answersContainer',
@@ -47,7 +56,7 @@ module.exports = `
 		    value: `<%= upVote %>`
 		  }) + `
 		</div>
-		<div class="showActionsContainer flex justify-center h-0">
+		<div class="hidden showActionsContainer flex justify-center h-0">
 			<iconify-icon data-width="18" class="relative w-full h-5" data-icon="ls-etc"></iconify-icon>
 		</div>
 		<div class="actionsContainer flex">` +

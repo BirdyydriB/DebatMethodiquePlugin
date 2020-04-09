@@ -18,7 +18,7 @@ class SortByUpVote extends sort_function.SortFunction {
    * @returns {SortByUpVote} this, all comments sorted and classified by number of up vote
    */
   constructor(comments) {
-    super(comments, 0.01);
+    super(comments, 0.1);
     this._label = localize('SORT_FUNCTION_UPVOTE_LABEL');
     this._id = 'sortByUpVote';
     this._isActive = false;

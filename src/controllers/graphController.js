@@ -52,12 +52,7 @@ class GraphController {
     this._graphNavigator = graphNavigator;
 
     var self = this;
-    _.each(this.graphView.commentsView, (comment, index, list) => {
-      // Double click on a comment : select it
-      comment.commentView.dblclick(() => {
-        self.graphNavigator.selectComment(comment);
-      });
-      
+    _.each(this.graphView.commentsView, (comment, index, list) => {      
       // Over showActionsContainer... show the actionsContainer
       comment.commentView.find('.showActionsContainer').on('mouseenter', (e) => {
         this.showActionsContainer(comment);

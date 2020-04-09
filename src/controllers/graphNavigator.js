@@ -83,12 +83,9 @@ class GraphNavigator {
     // Listen to graphModel grid changes, to rebuild this.denseGrid
     $(document).on('updateGrig', this.buildDenseGrid.bind(this));
 
-    // Listen to scroll event
-    $('#graphContainer').on('scroll', this.onScroll.bind(this));
+    // Listen to scroll && keyboard event
+    this.addListeners();
     setInterval(this.updateGridCoordinatesFromScroll.bind(this), 20);
-
-    // Listen to keyboard event
-    $(document).keydown(this.onKeypress.bind(this));
 
     this.buildDenseGrid();
 
@@ -174,13 +171,33 @@ class GraphNavigator {
   }
 
   /**
+    * Add scroll and keyboard listeners, to manage graph navigation
+    * @access public
+    */
+  addListeners() {
+    $('#graphContainer').on('scroll', this.onScroll.bind(this));
+    $(document).keydown(this.onKeypress.bind(this));
+  }
+
+  /**
+    * Remove scroll and keyboard listeners, avoiding graph navigation when not needed
+    * @access public
+    */
+  removeListeners() {
+    $('#graphContainer').off('scroll');
+    $(document).off('keydown');
+    if (this.testStopSelectingTimeout) {
+      clearTimeout(this.testStopSelectingTimeout);
+    }
+  }
+
+  /**
     * Scroll main view to topLeft comment
     * @access public
     * @param {DenseGridObject} topLeft - The top left comment in viewport
     * @param {Boolean} constantSpeed - True if scroll is made with constant speed
     */
   scrollMainContainer(topLeft, constantSpeed) {
-    // Remove scroll listener
     $('#graphContainer').off('scroll');
     // Scroll to nearest comment and get in return time needed
     const scrollTime = animation_manager.scrollMain($('#graphContainer'), {
@@ -306,8 +323,9 @@ class GraphNavigator {
     * @access public
     * @param {CommentView} commentToSelect - the comment to select
     */
-  selectComment(commentToSelect) {
-    if (!this.graphView.selectedComment || (this.graphView.selectedComment.commentModel.id != commentToSelect.commentModel.id)) {      // Unselect the previous one
+  selectComment(commentToSelect, isAnimated = true) {
+    if (!this.graphView.selectedComment || (this.graphView.selectedComment.commentModel.id != commentToSelect.commentModel.id)) {
+      // Unselect the previous one
       if (this.graphView.selectedComment) {
         this.graphView.selectedComment.unselect();
         _.each(this.graphView.selectedComment.commentModel.allChildren, (commentId) => {
@@ -320,7 +338,7 @@ class GraphNavigator {
 
       this.graphView.selectedComment = commentToSelect;
       commentToSelect.select(this.graphView.depthColors[0]);
-      const selectedRow = this.graphModel.grid.getCoordinates(commentToSelect.commentModel.id).rowIndex
+      const selectedRow = commentToSelect.commentModel.allParents.length;
 
       // Select ancestors
       _.each(commentToSelect.commentModel.allParents, (parentId) => {
@@ -335,15 +353,17 @@ class GraphNavigator {
         childView.selectAsChild(childDepth, this.graphView.depthColors[childDepth]);
       });
 
-      // Scroll View to selected comment -1, -1
-      this.scrollMainContainerToSelected(false);
+      if(isAnimated) {
+        // Scroll View to selected comment -1, -1
+        this.scrollMainContainerToSelected(false);
 
-      // Do model change and resize, only if user has stopped selecting
-      if (this.testStopSelectingTimeout) {
-        clearTimeout(this.testStopSelectingTimeout);
+        // Do model change and resize, only if user has stopped selecting
+        if (this.testStopSelectingTimeout) {
+          clearTimeout(this.testStopSelectingTimeout);
+        }
+        // Try to launch selectCommentUpdateModel before reset ?
+        this.testStopSelectingTimeout = setTimeout(this.selectCommentUpdateModel.bind(this), 400, commentToSelect);
       }
-      // Try to launch selectCommentUpdateModel before reset ?
-      this.testStopSelectingTimeout = setTimeout(this.selectCommentUpdateModel.bind(this), 400, commentToSelect);
     }
   }
   /**

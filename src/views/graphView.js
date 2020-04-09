@@ -54,12 +54,14 @@ class GraphView {
   }
   set selectedComment(comment) {
     const rslt = (this._selectedComment = comment);
-    this._selectedPath = _.clone(comment.commentModel.allParents);
-    this._selectedPath.push(comment.commentModel.id);
-    var children = comment.commentModel.childrenCommentsId;
-    while(children.length > 0) {
-      this._selectedPath.push(children[0]);
-      children = this.graphModel.commentsModel[children[0]].childrenCommentsId;
+    if(comment != null) {
+      this._selectedPath = _.clone(comment.commentModel.allParents);
+      this._selectedPath.push(comment.commentModel.id);
+      var children = comment.commentModel.childrenCommentsId;
+      while(children.length > 0) {
+        this._selectedPath.push(children[0]);
+        children = this.graphModel.commentsModel[children[0]].childrenCommentsId;
+      }
     }
     return rslt;
   }

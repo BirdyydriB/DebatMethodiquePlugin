@@ -67,6 +67,15 @@ class CommentView {
   set selected(val) {
     return this._selected = val;
   }
+  _selectedAsChild; // Boolean | Is this comment selected as child ?
+  get selectedAsChild() {
+    return this._selectedAsChild;
+  }
+  _selectedAsParent; // Boolean | Is this comment selected as parent ?
+  get selectedAsParent() {
+    return this._selectedAsParent;
+  }
+
   get height() {
     return this._isExpanded ?
       this._expandedHeight :
@@ -100,6 +109,8 @@ class CommentView {
   constructor() {
     this._childRelationsView = [];
     this._selected = false;
+    this._selectedAsChild = false;
+    this._selectedAsParent = false;
     this._isExpanded = false;
     return this;
   }
@@ -243,6 +254,7 @@ class CommentView {
     * @param {string} color - The color given to comment border
     */
   selectAsChild(distance, color) {
+    this._selectedAsChild = true;
     this.commentView.addClass('border-3 border-solid rounded');
     this.commentView.css('border-color', color);
     _.each(this.childRelationsView, (relationView) => {
@@ -255,6 +267,7 @@ class CommentView {
     * @access public
     */
   unselectAsChild() {
+    this._selectedAsChild = false;
     this.commentView.removeClass('border-3 border-solid rounded');
     this.commentView.css('border-color', null);
     _.each(this.childRelationsView, (relationView) => {
@@ -269,6 +282,7 @@ class CommentView {
     * @param {string} color - The color given to comment border
     */
   selectAsParent(distance, color) {
+    this._selectedAsParent = true;
     this.commentView.addClass('border-3 border-solid rounded');
     this.commentView.css('border-color', color);
     if(this.parentRelationView) {
@@ -281,6 +295,7 @@ class CommentView {
     * @access public
     */
   unselectAsParent() {
+    this._selectedAsParent = false;
     this.commentView.removeClass('border-3 border-solid rounded');
     this.commentView.css('border-color', null);
     if(this.parentRelationView) {
@@ -357,6 +372,17 @@ class CommentView {
         'max-height': this._actionsContainerHeight
       });
     }
+  }
+
+  /**
+    * Set a background color to the commentView header
+    * @access public
+    * @param {hexa} color - The color of the comment header
+    */
+  setHeaderColor(color) {
+    const header = this.commentView.find('.commentHeader');
+    header.css('background-color', color);
+    header.css('color', colors.getTextColorFromBackgroundColor(color));
   }
 
 }
