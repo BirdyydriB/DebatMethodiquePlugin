@@ -215,8 +215,8 @@ class CommentView {
     */
   select(color) {
     this.selected = true;
-    this.commentView.addClass('border-3 border-solid rounded');
-    this.commentView.css('border-color', color);
+    this.commentView.addClass('outline-3 outline-solid');
+    this.commentView.css('outline-color', color);
 
     _.each(this.childRelationsView, (relationView) => {
       relationView.select(1);
@@ -234,8 +234,8 @@ class CommentView {
     */
   unselect() {
     this.selected = false;
-    this.commentView.removeClass('border-3 border-solid rounded');
-    this.commentView.css('border-color', null);
+    this.commentView.removeClass(['outline-3', 'outline-solid']);
+    this.commentView.css('outline-color', '');
 
     _.each(this.childRelationsView, (relationView) => {
       relationView.unselect();
@@ -255,8 +255,8 @@ class CommentView {
     */
   selectAsChild(distance, color) {
     this._selectedAsChild = true;
-    this.commentView.addClass('border-3 border-solid rounded');
-    this.commentView.css('border-color', color);
+    this.commentView.addClass('outline-3 outline-solid');
+    this.commentView.css('outline-color', color);
     _.each(this.childRelationsView, (relationView) => {
       relationView.select(distance + 1);
     });
@@ -268,8 +268,8 @@ class CommentView {
     */
   unselectAsChild() {
     this._selectedAsChild = false;
-    this.commentView.removeClass('border-3 border-solid rounded');
-    this.commentView.css('border-color', null);
+    this.commentView.removeClass(['outline-3', 'outline-solid']);
+    this.commentView.css('outline-color', '');
     _.each(this.childRelationsView, (relationView) => {
       relationView.unselect();
     });
@@ -283,8 +283,8 @@ class CommentView {
     */
   selectAsParent(distance, color) {
     this._selectedAsParent = true;
-    this.commentView.addClass('border-3 border-solid rounded');
-    this.commentView.css('border-color', color);
+    this.commentView.addClass('outline-3 outline-solid');
+    this.commentView.css('outline-color', color);
     if(this.parentRelationView) {
       this.parentRelationView.select(-distance - 1);
     }
@@ -296,8 +296,8 @@ class CommentView {
     */
   unselectAsParent() {
     this._selectedAsParent = false;
-    this.commentView.removeClass('border-3 border-solid rounded');
-    this.commentView.css('border-color', null);
+    this.commentView.removeClass(['outline-3', 'outline-solid']);
+    this.commentView.css('outline-color', '');
     if(this.parentRelationView) {
       this.parentRelationView.unselect();
     }

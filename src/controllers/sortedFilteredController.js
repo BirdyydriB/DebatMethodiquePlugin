@@ -64,7 +64,7 @@ class SortedFilteredController {
     _.each(this._graphView.commentsView, (commentView) => {
       commentView.commentView.find('.goToGraphButton').click((function() {
         // Remove outline and hide goToGraphContainer
-        commentView.commentView.trigger('mouseleave');
+        this.unselectComment(commentView.commentView);
         // Select comment
         this._graphView.selectedComment = commentView;
         // Swap view to graphView
@@ -150,23 +150,28 @@ class SortedFilteredController {
       commentView.commentView.addClass('m-2');
 
       // Over/Out a comment : "select" it
-      commentView.commentView.mouseenter(function() {
-        $(this).css('outline-color', GOOD_COLOR);
-        $(this).css('outline-style', 'solid');
-        $(this).css('outline-width', '3px');
+      commentView.commentView.mouseenter((function() {
+        console.log('select', commentView.commentView);
+        this.selectComment(commentView.commentView);
 
-        $(this).find('.goToGraphContainer').removeClass('hidden');
-
-        $(this).off('mouseleave');
-        $(this).mouseleave(function() {
-          $(this).css('outline-color', '');
-          $(this).css('outline-style', '');
-          $(this).css('outline-width', '');
-
-          $(this).find('.goToGraphContainer').addClass('hidden');
-        });
-      });
+        commentView.commentView.off('mouseleave');
+        commentView.commentView.mouseleave((function() {
+          console.log('unselect', commentView.commentView);
+          this.unselectComment(commentView.commentView);
+        }).bind(this));
+      }).bind(this));
     });
+  }
+
+  selectComment(commentView) {
+    commentView.css('outline-color', GOOD_COLOR);
+    commentView.addClass('outline-3 outline-solid');
+    commentView.find('.goToGraphContainer').removeClass('hidden');
+  }
+  unselectComment(commentView) {
+    commentView.css('outline-color', '');
+    commentView.removeClass(['outline-3', 'outline-solid']);
+    commentView.find('.goToGraphContainer').addClass('hidden');
   }
 
   sortToGraph() {
@@ -192,13 +197,14 @@ class SortedFilteredController {
       }
       // Remove Over/Out "selection"
       commentView.commentView.off('mouseenter');
+      commentView.commentView.off('mouseleave');
     });
 
     // Force "reset" of selection, to re-build Graph
     const selectedComment = this._graphView.selectedComment;
     this._graphView.selectedComment = null;
     this._graphNavigator.selectComment(selectedComment, false);
-    this._graphNavigator.selectCommentUpdateModel(selectedComment);
+    this._graphNavigator.selectCommentUpdateModel();
 
     // Add scroll and keyboard listeners again, for graph navigation
     this._graphNavigator.addListeners();

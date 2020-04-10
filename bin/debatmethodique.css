@@ -13966,6 +13966,14 @@ video {
   transition-duration: 1000ms;
 }
 
+.outline-3 {
+  outline-width: 3px;
+}
+
+.outline-solid {
+  outline-style: solid;
+}
+
 #commentsContainer .commentContainer {
   width: 300px;
 }

@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+
+.outline-3 {
+	outline-width: 3px;
+}
+.outline-solid {
+	outline-style: solid;
+}
+
 #commentsContainer {
 
 	.commentContainer {

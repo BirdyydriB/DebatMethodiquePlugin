@@ -362,7 +362,7 @@ class GraphNavigator {
           clearTimeout(this.testStopSelectingTimeout);
         }
         // Try to launch selectCommentUpdateModel before reset ?
-        this.testStopSelectingTimeout = setTimeout(this.selectCommentUpdateModel.bind(this), 400, commentToSelect);
+        this.testStopSelectingTimeout = setTimeout(this.selectCommentUpdateModel.bind(this), 400);
       }
     }
   }
@@ -371,16 +371,16 @@ class GraphNavigator {
     * @access public
     * @param {CommentView} commentToSelect - the comment to select
     */
-  selectCommentUpdateModel(commentToSelect) {
+  selectCommentUpdateModel() {
     // Select new
     _.each(this.graphModel.commentsModel, (commentModel) => {
-      const isSelectedChild = (_.indexOf(commentToSelect.commentModel.allChildren, commentModel.id) != -1);
-      const isSelectedParent = (_.indexOf(commentToSelect.commentModel.allParents, commentModel.id) != -1);
-      const isSelected = (commentToSelect.commentModel.id == commentModel.id);
-      const isBrother = (commentToSelect.commentModel.parentCommentId == commentModel.parentCommentId);
+      const isSelectedChild = (_.indexOf(this.graphView.selectedComment.commentModel.allChildren, commentModel.id) != -1);
+      const isSelectedParent = (_.indexOf(this.graphView.selectedComment.commentModel.allParents, commentModel.id) != -1);
+      const isSelected = (this.graphView.selectedComment.commentModel.id == commentModel.id);
+      const isBrother = (this.graphView.selectedComment.commentModel.parentCommentId == commentModel.parentCommentId);
 
-      if (isSelected && !commentToSelect.isExpanded) {
-        commentToSelect.resize();
+      if (isSelected && !this.graphView.selectedComment.isExpanded) {
+        this.graphView.selectedComment.resize();
       }
       if (!isSelected && this.graphView.commentsView[commentModel.id].isExpanded) {
         // Old selected => return to default size
