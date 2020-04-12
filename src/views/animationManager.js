@@ -222,7 +222,7 @@ class AnimationManager {
     * @param {int} targetedValues.scrollTop - scrollTop targeted values
     * @param {int} targetedValues.scrollLeft - scrollLeft targeted values
     * @param {boolean} constantSpeed - true if constant speed, false if constant time
-    * @returns {int} scroll animation time
+    * @returns {Promise} the scroll promise
     */
   scrollMain(mainDOM, targetedValues, constantSpeed = true) {
     if(this._animated) {
@@ -235,19 +235,18 @@ class AnimationManager {
           , 2 * ANIMATION_TIME)
         : ANIMATION_TIME;
 
-      mainDOM.clearQueue()
+      return mainDOM.clearQueue()
         .stop()
         .animate(targetedValues, {
           duration: scrollDuration,
           easing: 'swing'
-      });
-
-      return scrollDuration;
+        })
+        .promise();
     }
     else {
       mainDOM.scrollTop(targetedValues.scrollTop);
       mainDOM.scrollLeft(targetedValues.scrollLeft);
-      return 0;
+      return Promise.resolve();
     }
   }
 

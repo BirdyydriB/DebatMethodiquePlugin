@@ -151,12 +151,10 @@ class SortedFilteredController {
 
       // Over/Out a comment : "select" it
       commentView.commentView.mouseenter((function() {
-        console.log('select', commentView.commentView);
         this.selectComment(commentView.commentView);
 
         commentView.commentView.off('mouseleave');
         commentView.commentView.mouseleave((function() {
-          console.log('unselect', commentView.commentView);
           this.unselectComment(commentView.commentView);
         }).bind(this));
       }).bind(this));
@@ -203,7 +201,7 @@ class SortedFilteredController {
     // Force "reset" of selection, to re-build Graph
     const selectedComment = this._graphView.selectedComment;
     this._graphView.selectedComment = null;
-    this._graphNavigator.selectComment(selectedComment, false);
+    this._graphNavigator.selectComment(selectedComment);
     this._graphNavigator.selectCommentUpdateModel();
 
     // Add scroll and keyboard listeners again, for graph navigation

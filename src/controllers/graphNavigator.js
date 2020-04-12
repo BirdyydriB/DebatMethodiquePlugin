@@ -87,10 +87,9 @@ class GraphNavigator {
     this.addListeners();
     setInterval(this.updateGridCoordinatesFromScroll.bind(this), 20);
 
-    this.buildDenseGrid();
-
     // Select 0x0 comment
     this.selectComment(this._graphView.commentsView[this._graphModel.rootComments[0]]);
+    this.selectCommentUpdateModel();
 
     return this;
   }
@@ -189,35 +188,25 @@ class GraphNavigator {
     if (this.testStopSelectingTimeout) {
       clearTimeout(this.testStopSelectingTimeout);
     }
+    if (this.testStopScrollTimeout) {
+      clearTimeout(this.testStopScrollTimeout);
+    }
   }
 
-  /**
-    * Scroll main view to topLeft comment
-    * @access public
-    * @param {DenseGridObject} topLeft - The top left comment in viewport
-    * @param {Boolean} constantSpeed - True if scroll is made with constant speed
-    */
-  scrollMainContainer(topLeft, constantSpeed) {
-    $('#graphContainer').off('scroll');
-    // Scroll to nearest comment and get in return time needed
-    const scrollTime = animation_manager.scrollMain($('#graphContainer'), {
-      scrollTop: this.mapCommentsPosition(topLeft, 'top'),
-      scrollLeft: this.mapCommentsPosition(topLeft, 'left')
-    }, constantSpeed);
-    // Add scroll listener again, few times after sroll to nearest ended
-    setTimeout(() => {
-      $('#graphContainer').on('scroll', this.onScroll.bind(this));
-    }, scrollTime * 1.1);
-  }
   /**
     * Scroll View to selected comment -1, -1
     * @access public
     * @param {Boolean} constantSpeed - True if scroll is made with constant speed
+    * @returns {Promise} the scroll promise
     */
   scrollMainContainerToSelected(constantSpeed) {
     const selectedIndexes = this.denseGrid.getCoordinates(this.graphView.selectedComment.commentModel.id);
     const previousBrother = this.denseGrid.get(Math.max(0, selectedIndexes.rowIndex - 1), Math.max(0, selectedIndexes.columnIndex - 1));
-    this.scrollMainContainer(previousBrother, constantSpeed);
+
+    return animation_manager.scrollMain($('#graphContainer'), {
+      scrollTop: this.mapCommentsPosition(previousBrother, 'top'),
+      scrollLeft: this.mapCommentsPosition(previousBrother, 'left')
+    }, constantSpeed);
   }
 
   /**
@@ -233,6 +222,7 @@ class GraphNavigator {
     // Try to launch onScrollStop before reset ?
     this.testStopScrollTimeout = setTimeout(this.onScrollStop.bind(this), 300);
   }
+
   /**
     * testStopScrollTimeout wasn't reset, onScrollStop succeed launching : user has stopped scrolling
     * @access private
@@ -241,18 +231,39 @@ class GraphNavigator {
     this.updateGridCoordinatesFromScroll();
     if ($('#graphContainer')[0].scrollTop != $('#graphContainer')[0].scrollTopMax &&
       $('#graphContainer')[0].scrollLeft != $('#graphContainer')[0].scrollLeftMax) {
-      var newTopLeft = this.denseGrid.get(this.currentGridCoordinates.rowIndex, this.currentGridCoordinates.columnIndex);
-      this.scrollMainContainer(newTopLeft, true);
+      const newTopLeft = this.denseGrid.get(this.currentGridCoordinates.rowIndex, this.currentGridCoordinates.columnIndex);
+      const topPosition = this.mapCommentsPosition(newTopLeft, 'top');
+      const leftPosition = this.mapCommentsPosition(newTopLeft, 'left');
+
+      if((topPosition != $('#graphContainer')[0].scrollTop) || (leftPosition != $('#graphContainer')[0].scrollLeft)) {
+        // Remove scroll listener
+        $('#graphContainer').off('scroll');
+        // Scroll to newTopLeft comment
+        animation_manager.scrollMain($('#graphContainer'), {
+          scrollTop: topPosition,
+          scrollLeft: leftPosition
+        }, true).then(() => {
+          // Add scroll listener again, when finish scrolling to newTopLeft
+          $('#graphContainer').on('scroll', this.onScroll.bind(this));
+        });
+      }
     }
   }
 
+  /**
+    * Return the (top or left) position of a comment
+    * @access private
+    * @param {string} commentId - Id of the comment
+    * @param {string} direction - top|left
+    * @returns {number} the position of the comment
+    */
   mapCommentsPosition(commentId, direction) {
     if(parseInt(commentId) > 0) {
-      // 'this' is a comment : return position defined by direction
+      // It's a comment : return position defined by direction
       return this.graphView.commentsView[commentId].commentView[direction];
     }
     else {
-      // 'this' is an 'empty' comment, to get a scroll anchor. Look top/left position of first comment of the same row/column.
+      // It's an 'empty' comment, to get a scroll anchor. Look top/left position of first comment of the same row/column.
       const coords = this.denseGrid.getCoordinates(commentId);
       const dimension = (direction == 'top') ?
         this.denseGrid.row(coords.rowIndex) :
@@ -265,6 +276,7 @@ class GraphNavigator {
       return 0;
     }
   }
+
   /**
     * From $('#graphContainer').scrollTop and scrollLeft, find nearest DOM comment
     * @access private
@@ -302,6 +314,7 @@ class GraphNavigator {
       }
     }
   }
+
   /**
     * Update currentGridCoordinates from top-left comment lineIndex and columnIndex
     * @access private
@@ -319,11 +332,33 @@ class GraphNavigator {
   }
 
   /**
+    * Select a comment (only one could be selected) then scroll to selected comment -1, -1
+    * @access public
+    * @param {CommentView} commentToSelect - the comment to select
+    */
+  selectCommentAndScroll(commentToSelect) {
+    // Remove default scroll listener
+    $('#graphContainer').off('scroll');
+
+    this.selectComment(commentToSelect);
+
+    // Scroll View to selected comment -1, -1
+    this.scrollMainContainerToSelected(false);
+
+    // Do model change and resize, only if user has stopped selecting
+    if (this.testStopSelectingTimeout) {
+      clearTimeout(this.testStopSelectingTimeout);
+    }
+    // Try to launch selectCommentUpdateModel before reset ?
+    this.testStopSelectingTimeout = setTimeout(this.selectCommentUpdateModel.bind(this), 400);
+  }
+
+  /**
     * Select a comment (only one could be selected)
     * @access public
     * @param {CommentView} commentToSelect - the comment to select
     */
-  selectComment(commentToSelect, isAnimated = true) {
+  selectComment(commentToSelect) {
     if (!this.graphView.selectedComment || (this.graphView.selectedComment.commentModel.id != commentToSelect.commentModel.id)) {
       // Unselect the previous one
       if (this.graphView.selectedComment) {
@@ -352,18 +387,6 @@ class GraphNavigator {
         const childDepth = Math.abs(selectedRow - childView.commentModel.allParents.length);
         childView.selectAsChild(childDepth, this.graphView.depthColors[childDepth]);
       });
-
-      if(isAnimated) {
-        // Scroll View to selected comment -1, -1
-        this.scrollMainContainerToSelected(false);
-
-        // Do model change and resize, only if user has stopped selecting
-        if (this.testStopSelectingTimeout) {
-          clearTimeout(this.testStopSelectingTimeout);
-        }
-        // Try to launch selectCommentUpdateModel before reset ?
-        this.testStopSelectingTimeout = setTimeout(this.selectCommentUpdateModel.bind(this), 400);
-      }
     }
   }
   /**
@@ -403,7 +426,10 @@ class GraphNavigator {
     this.graphView.refresh();
 
     // Scroll View to selected comment -1, -1
-    this.scrollMainContainerToSelected(false);
+    this.scrollMainContainerToSelected(false).then(() => {
+      // Add default scroll listener again
+      $('#graphContainer').on('scroll', this.onScroll.bind(this));
+    });
   }
 
   /**
@@ -454,7 +480,7 @@ class GraphNavigator {
   selectParent() {
     const parentId = this.graphView.selectedComment.commentModel.parentCommentId;
     if (parentId != -1) {
-      this.selectComment(this.graphView.commentsView[parentId]);
+      this.selectCommentAndScroll(this.graphView.commentsView[parentId]);
     }
   }
   /**
@@ -464,7 +490,7 @@ class GraphNavigator {
   selectFirstChild() {
     if (this.graphView.selectedComment.commentModel.childrenCommentsId.length > 0) {
       const firstChildId = this.graphView.selectedComment.commentModel.childrenCommentsId[0];
-      this.selectComment(this.graphView.commentsView[firstChildId]);
+      this.selectCommentAndScroll(this.graphView.commentsView[firstChildId]);
     }
   }
   /**
@@ -478,7 +504,7 @@ class GraphNavigator {
       : this.graphModel.commentsModel[parentId].childrenCommentsId;
     const currentIndex = _.indexOf(brothers, this.graphView.selectedComment.commentModel.id);
     if (currentIndex > 0) {
-      this.selectComment(this.graphView.commentsView[brothers[currentIndex - 1]]);
+      this.selectCommentAndScroll(this.graphView.commentsView[brothers[currentIndex - 1]]);
     }
   }
   /**
@@ -492,7 +518,7 @@ class GraphNavigator {
       : this.graphModel.commentsModel[parentId].childrenCommentsId;
     const currentIndex = _.indexOf(brothers, this.graphView.selectedComment.commentModel.id);
     if (currentIndex < brothers.length - 1) {
-      this.selectComment(this.graphView.commentsView[brothers[currentIndex + 1]]);
+      this.selectCommentAndScroll(this.graphView.commentsView[brothers[currentIndex + 1]]);
     }
   }
 }
