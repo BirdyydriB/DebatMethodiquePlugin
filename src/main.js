@@ -1,6 +1,7 @@
 "use strict";
 var _ = require('underscore');
 
+const constants = require("./parameters/constants");
 var template_index = require("./templates/index");
 var momentUtilities = require('./utils/moment-utilities');
 var menuView = require("./views/menuView");
@@ -20,6 +21,10 @@ function main(request, sender, sendResponse) {
     originalContentDOM.hide();
 
     if($('#mainContainer').length == 0) {
+      document.documentElement.style.setProperty('--color-goodColor', constants.GOOD_COLOR);
+      document.documentElement.style.setProperty('--color-middleColor', constants.MIDDLE_COLOR);
+      document.documentElement.style.setProperty('--color-badColor', constants.BAD_COLOR);
+
       $(document.body).prepend(_.template(template_index, {}));
       momentUtilities.initMoment();
       graphModel.init();

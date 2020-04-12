@@ -1,3 +1,8 @@
+:root {
+  --color-goodColor: green;
+  --color-middleColor: yellow;
+  --color-badColor: red; }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,8 +41,5 @@
   fill: none;
   stroke: gray;
   stroke-width: 4; }
-
-.sortFunction {
-  @apply bg-gray-600; }
 
 /*# sourceMappingURL=style.css.map */

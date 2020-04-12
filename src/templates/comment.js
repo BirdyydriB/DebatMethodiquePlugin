@@ -1,6 +1,6 @@
-var _ = require('underscore');
-var iconText = _.template(require("./iconText"));
-var button = _.template(require("./button"));
+const _ = require('underscore');
+const iconText = _.template(require("./iconText"));
+const button = _.template(require("./button"));
 
 module.exports = `
 <div id="<%= id %>" class="commentContainer absolute shadow-xl flex flex-col">
@@ -27,15 +27,6 @@ module.exports = `
 	</div>
 
 	<div class="commentFooter p-1 bg-white">
-		<div class="goToGraphContainer hidden flex flex-no-shrink">` +
-			button({
-				btn_id: '',
-				btn_class: 'goToGraphButton',
-				label_class: '',
-				label: 'Voir dans la discussion'
-			}) + `
-		</div>
-
 		<div class="infosContainer flex flex-no-shrink">` +
 		  iconText({
 				icon_id: '',
@@ -54,6 +45,16 @@ module.exports = `
 		    icon_class: 'upVoteContainer',
 		    icon: 'mdi-thumb-up',
 		    value: `<%= upVote %>`
+		  }) +
+			button({
+		    btn_id: '',
+		    btn_class: 'selectCommentButton-graph text-goodColor',
+		    icon: 'ic-baseline-slideshow'
+		  }) +
+			button({
+		    btn_id: '',
+		    btn_class: 'selectCommentButton-sort text-goodColor hidden',
+		    icon: 'ic-baseline-slideshow'
 		  }) + `
 		</div>
 		<div class="hidden showActionsContainer flex justify-center h-0">

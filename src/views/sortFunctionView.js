@@ -6,9 +6,6 @@ const _ = require('underscore');
 /**
  * Project requirements
  */
-const {
-   GOOD_COLOR
-} = require('../parameters/constants');
 const colors = require("../utils/colors");
 
 /**

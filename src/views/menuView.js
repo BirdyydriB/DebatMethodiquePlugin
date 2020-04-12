@@ -6,9 +6,6 @@ const _ = require('underscore');
 /**
  * Project requirements
  */
-const {
-   GOOD_COLOR
-} = require('../parameters/constants');
 const template_menu = require("../templates/menu");
 
 /**
@@ -33,10 +30,10 @@ class MenuView {
       articleTitle: articleTitle,
       allSortFunctions: this._graphModel.mainSortFunction.allSortFunctions
     }));
-    $('.sortFunction.isActive').css('background-color', GOOD_COLOR);
+    $('.sortFunction.isActive').addClass('bg-goodColor');
     $('#menuContainer #sortFilterBar').hide();
 
-    $('#menuContainer #centerSelectedButton').css('color', GOOD_COLOR);
+    $('#menuContainer #centerSelectedButton').addClass('text-goodColor');
 
     return this;
   }

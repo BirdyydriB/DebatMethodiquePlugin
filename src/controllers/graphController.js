@@ -52,11 +52,17 @@ class GraphController {
     this._graphNavigator = graphNavigator;
 
     var self = this;
-    _.each(this.graphView.commentsView, (comment, index, list) => {      
+    _.each(this.graphView.commentsView, (comment, index, list) => {
       // Over showActionsContainer... show the actionsContainer
       comment.commentView.find('.showActionsContainer').on('mouseenter', (e) => {
         this.showActionsContainer(comment);
       });
+
+      // Click on selectCommentButton... select the comment
+      comment.commentView.find('.selectCommentButton-graph').click((() => {
+        this._graphNavigator.selectCommentAndScroll(comment);
+      }).bind(this));
+
     });
 
     // Click on a date : change date display mode to next display mode (modulo)

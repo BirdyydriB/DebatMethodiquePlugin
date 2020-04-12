@@ -1,11 +1,4 @@
 /**
- * Project requirements
- */
-const {
-   GOOD_COLOR
-} = require('../parameters/constants');
-
-/**
  * Class Definition
  */
 class MenuController {
@@ -59,11 +52,13 @@ class MenuController {
       sortFunctionView.sortFunctionModel.isActive = !sortFunctionView.sortFunctionModel.isActive;
 
       if (sortFunctionView.sortFunctionModel.isActive) {
-        $(e.currentTarget).css('background-color', GOOD_COLOR);
+        $(e.currentTarget).addClass('bg-goodColor');
+        $(e.currentTarget).removeClass('bg-gray-600');
         sortFunctionView.showAll();
       }
       else {
-        $(e.currentTarget).css('background-color', '');
+        $(e.currentTarget).removeClass('bg-goodColor');
+        $(e.currentTarget).addClass('bg-gray-600');
         sortFunctionView.hideAll();
       }
     });

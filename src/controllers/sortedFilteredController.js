@@ -60,9 +60,9 @@ class SortedFilteredController {
     this.sortCommentsToContainers();
     this._isInSortedMode = false;
 
-    // Each comments : add a listener on goToGraphButton
+    // Each comments : add a listener on selectCommentButton
     _.each(this._graphView.commentsView, (commentView) => {
-      commentView.commentView.find('.goToGraphButton').click((function() {
+      commentView.commentView.find('.selectCommentButton-sort').click((() => {
         // Remove outline and hide goToGraphContainer
         this.unselectComment(commentView.commentView);
         // Select comment
@@ -149,6 +149,10 @@ class SortedFilteredController {
       commentView.commentView.css('top', '');
       commentView.commentView.addClass('m-2');
 
+      // Switch selectCommentButtons, making click right behaviour
+      commentView.commentView.find('.selectCommentButton-sort').removeClass('hidden');
+      commentView.commentView.find('.selectCommentButton-graph').addClass('hidden');
+
       // Over/Out a comment : "select" it
       commentView.commentView.mouseenter((function() {
         this.selectComment(commentView.commentView);
@@ -164,12 +168,10 @@ class SortedFilteredController {
   selectComment(commentView) {
     commentView.css('outline-color', GOOD_COLOR);
     commentView.addClass('outline-3 outline-solid');
-    commentView.find('.goToGraphContainer').removeClass('hidden');
   }
   unselectComment(commentView) {
     commentView.css('outline-color', '');
     commentView.removeClass(['outline-3', 'outline-solid']);
-    commentView.find('.goToGraphContainer').addClass('hidden');
   }
 
   sortToGraph() {
@@ -189,10 +191,16 @@ class SortedFilteredController {
       // Position will be calculated again
       commentView.commentView.addClass('absolute');
       commentView.commentView.removeClass('m-2');
+
       // Hide again comments that should be hidden
       if(!commentView.commentModel.visible) {
         commentView.commentView.hide();
       }
+
+      // Switch selectCommentButtons, making click right behaviour
+      commentView.commentView.find('.selectCommentButton-graph').removeClass('hidden');
+      commentView.commentView.find('.selectCommentButton-sort').addClass('hidden');
+
       // Remove Over/Out "selection"
       commentView.commentView.off('mouseenter');
       commentView.commentView.off('mouseleave');
