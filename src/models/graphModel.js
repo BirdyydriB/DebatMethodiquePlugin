@@ -139,8 +139,6 @@ class GraphModel {
     this._buildGridRecursive(this.rootComments, 0, 0, sortFunction);
     // Trigger change
     $(document).trigger('updateGrig');
-
-    console.log('buildGrid done', this.grid);
   }
   /**
     * Build grid recursively

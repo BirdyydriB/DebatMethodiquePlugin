@@ -52,7 +52,7 @@ class GraphView {
   get selectedComment() {
     return this._selectedComment;
   }
-  set selectedComment(comment) {
+  setSelectedComment(comment) {
     const rslt = (this._selectedComment = comment);
     if(comment != null) {
       this._selectedPath = _.clone(comment.commentModel.allParents);
@@ -153,7 +153,6 @@ class GraphView {
       this.showComment(this.commentsView[comment.id]);
     });
     $(document).on('updateGrig', (event) => {
-      console.log('updateGrig');
       this.refresh();
     });
 
@@ -256,6 +255,8 @@ class GraphView {
     * @access public
     */
   refresh() {
+    // Reset selectedComment as childs could have been re-ordered differently
+    this.setSelectedComment(this._selectedComment);
     var currentPositionOne = 0, currentPositionTwo = 0;
 
     for (var lineIndex = 0; lineIndex < this.graphModel.grid.height; lineIndex++) {

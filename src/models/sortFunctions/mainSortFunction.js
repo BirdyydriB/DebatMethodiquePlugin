@@ -55,8 +55,12 @@ class MainSortFunction {
   }
 
   classify() {
+    console.log('main classify');
     this._commentsClass = this._allSortFunctions.sortByUpVote.commentsClass;
     this._classes = this._allSortFunctions.sortByUpVote.classes;
+    this._graphModel.buildGrid((commentId) => {
+      return -this._commentsClass[commentId];
+    });
   }
 
 }

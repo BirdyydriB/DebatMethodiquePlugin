@@ -89,13 +89,13 @@ const colors = require("../../utils/colors");
     });
 
     // Classify using "Méthode des grandes différences relatives"
+    var currentClassIndex = 0;
     this._classes = [{
       color: null,
       comments: [sortedComments[0].id]
     }];
     this._commentsClass[sortedComments[0].id] = 0;
 
-    var currentClassIndex = 0;
     for (var i = 1; i < sortedComments.length; i++) {
       const relativeDiff = ((normalized[i] - normalized[i - 1]) / normalized[i - 1]);
 
