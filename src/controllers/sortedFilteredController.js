@@ -66,7 +66,7 @@ class SortedFilteredController {
         // Remove outline and hide goToGraphContainer
         this.unselectComment(commentView.commentView);
         // Select comment
-        this._graphView.selectedComment = commentView;
+        this._graphView.setSelectedComment(commentView);
         // Swap view to graphView
         this.sortToGraph();
         // Close Sort/Filter menu
@@ -208,7 +208,7 @@ class SortedFilteredController {
 
     // Force "reset" of selection, to re-build Graph
     const selectedComment = this._graphView.selectedComment;
-    this._graphView.selectedComment = null;
+    this._graphView.setSelectedComment(null);
     this._graphNavigator.selectComment(selectedComment);
     this._graphNavigator.selectCommentUpdateModel();
 
