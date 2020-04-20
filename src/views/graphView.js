@@ -19,7 +19,7 @@ const {
 const {
   GRAPH_DISPLAY_ORIENTATION
 } = require('../parameters/parameters');
-const template_graph = require("../templates/graph");
+const template_graph = require("../templates/graph.pug");
 const relation_view = require("../views/relationView");
 const comment_view = require("../views/commentView");
 const sortFunction_view = require("../views/sortFunctionView");
@@ -104,7 +104,7 @@ class GraphView {
     console.log('GraphView init');
     this._graphModel = graphModel;
 
-    $('#graphContainer').prepend(_.template(template_graph, {}));
+    $('#graphContainer').prepend(template_graph({}));
 
     this._d3RelactionContainer = d3s.select('#relationsContainer')
       .append('svg:svg');

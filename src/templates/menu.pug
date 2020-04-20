@@ -1,0 +1,36 @@
+- var localize = require('../parameters/localization/localize');
+
+div(id='mainMenuBar' class='w-full inline-block')
+  div(id='debateTitle' class='float-left h-full flex text-3xl')
+    div(id='debateTitleText' class='self-center max-w-lg overflow-hidden whitespace-no-wrap') #{articleTitle}
+
+  - var div_class = 'float-left';
+  include menuDivider.pug
+
+  - var btn_id = 'centerSelectedButton';
+  - var btn_class = 'float-left';
+  - var icon = 'ic-baseline-slideshow';
+  - var icon_size = 24;
+  include button.pug
+
+  - var btn_id = 'filterSortButton';
+  - var btn_class = 'float-left';
+  - var icon = null;
+  - var label_class = 'pt-1 pb-1';
+  - var label = localize('SORT_FILTER_BUTTON_LABEL');
+  include button.pug
+
+  - var btn_id = 'closeButton';
+  - var btn_class = 'float-right';
+  - var icon = 'vaadin-close';
+  - var icon_size = 24;
+  include button.pug
+
+  div(id='sortFilterBar' class='w-full inline-block p-2')
+    - var sort_class = 'float-left';
+    each sortFunction in allSortFunctions
+      - var sort_id = sortFunction.id;
+      - var sort_name = sortFunction.label;
+      - var sort_isActive = sortFunction.isActive;
+      - var sort_direction = sortFunction.sortDirection;
+      include sortFunction.pug

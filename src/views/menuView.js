@@ -6,7 +6,7 @@ const _ = require('underscore');
 /**
  * Project requirements
  */
-const template_menu = require("../templates/menu");
+const template_menu = require("../templates/menu.pug");
 
 /**
  * Class Definition
@@ -26,7 +26,7 @@ class MenuView {
     console.log('MenuView init');
     this._graphModel = graphModel;
 
-    $('#menuContainer').prepend(_.template(template_menu)({
+    $('#menuContainer').prepend(template_menu({
       articleTitle: articleTitle,
       allSortFunctions: this._graphModel.mainSortFunction.allSortFunctions
     }));

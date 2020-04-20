@@ -17,17 +17,11 @@ const {
 const {
   COMMENT_DATE_DISPLAY
 } = require('../parameters/parameters');
-const template_comment = require("../templates/comment");
+const template_comment = require("../templates/comment.pug");
 const animation_manager = require("../views/animationManager");
 const momentUtilities = require('../utils/moment-utilities');
 const colors = require("../utils/colors");
 const localize = require('../parameters/localization/localize');
-
-/**
- * HTML template of a comment view
- * @access private
- */
-const commentTemplate = _.template(template_comment);
 
 /**
  * The view of a comment
@@ -126,7 +120,7 @@ class CommentView {
   init(commentModel, commentContainer, allSortFunctions) {
     this._commentModel = commentModel;
 
-    commentContainer.append(commentTemplate({
+    commentContainer.append(template_comment({
       id: 'comment-' + commentModel.id,
       content: commentModel.content,
       iconSrc: commentModel.author.iconSrc,

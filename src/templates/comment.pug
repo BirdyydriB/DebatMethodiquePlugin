@@ -1,0 +1,45 @@
+div(id=id class='commentContainer absolute shadow-xl flex flex-col')
+	div(class='commentHeader bg-gray-700 text-white flex')
+		div(class='p-1 flex-1 flex')
+			img(src=iconSrc class='authorIcon rounded h-12 w-12' alt=author width='48' height='48')
+			span(class='author px-1 self-end flex-none') #{author} #{id}
+
+		div(class='p-1 flex-1 self-stretch flex justify-center')
+			div(class='date self-start text-center select-none cursor-pointer flex-none')
+
+		div(class='p-1 flex-1 self-stretch')
+
+	div(class='commentBody p-1 overflow-auto bg-white') !{content}
+
+	div(class='commentFooter p-1 bg-white')
+		div(class='infosContainer flex flex-no-shrink')
+			- var icon_class = 'answersContainer';
+			- var icon = 'mdi-comment-text-outline';
+			- var value = nbChildren;
+			include iconText.pug
+			
+			- var icon_class = 'allAnswersContainer';
+			- var icon = 'mdi-comment-text-multiple-outline';
+			- var value = nbChildrenTotal;
+			include iconText.pug
+			
+			- var icon_class = 'upVoteContainer';
+			- var icon = 'mdi-thumb-up';
+			- var value = upVote;
+			include iconText.pug
+			
+			- var btn_class = 'selectCommentButton-graph text-goodColor';
+			- var icon = 'ic-baseline-slideshow';
+			include button.pug
+			
+			- var btn_class = 'selectCommentButton-sort text-goodColor hidden';
+			- var icon = 'ic-baseline-slideshow';
+			include button.pug
+			
+		div(class='hidden showActionsContainer flex justify-center h-0')
+			iconify-icon(data-width='18' class='relative w-full h-5' data-icon='ls-etc')
+			
+		div(class='actionsContainer flex')
+			- var btn_class = 'followButton';
+			- var icon = 'mdi-bell';
+			include button.pug

@@ -1,0 +1,10 @@
+- icon_size = (icon_size) ? icon_size : 18;
+
+div(id=btn_id class=[btn_class + ' button m-1 border-2 border-gray-700 border-solid rounded cursor-pointer hover:bg-gray-200 flex overflow-hidden'])
+  if icon
+    div(class=['iconContainer p-1 self-stretch'])
+      iconify-icon(data-height=icon_size data-icon=icon)
+  else
+    div(class=[label_class + ' labelContainer pl-1 pr-1 self-stretch'])
+      span(class=['inline-block select-none']) #{label}
+      

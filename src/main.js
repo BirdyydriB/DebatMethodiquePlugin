@@ -2,7 +2,7 @@
 var _ = require('underscore');
 
 const constants = require("./parameters/constants");
-var template_index = require("./templates/index");
+var template_index = require("./templates/index.pug");
 var momentUtilities = require('./utils/moment-utilities');
 var menuView = require("./views/menuView");
 var graphModel = require("./models/graphModel");
@@ -25,7 +25,7 @@ function main(request, sender, sendResponse) {
       document.documentElement.style.setProperty('--color-middleColor', constants.MIDDLE_COLOR);
       document.documentElement.style.setProperty('--color-badColor', constants.BAD_COLOR);
 
-      $(document.body).prepend(_.template(template_index, {}));
+      $(document.body).prepend(template_index({}));
       momentUtilities.initMoment();
       graphModel.init();
       graphView.init(graphModel);

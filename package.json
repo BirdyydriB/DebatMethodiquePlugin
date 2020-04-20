@@ -7,9 +7,13 @@
   "dependencies": {
     "d3-selection": "^1.4.1",
     "d3-shape": "^1.3.7",
+    "jquery": "^3.5.0",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
     "moment-precise-range-plugin": "^1.3.0",
+    "pug": "^2.0.4",
+    "pugify": "^2.2.0",
+    "tailwindcss": "^1.2.0",
     "underscore": "^1.9.2"
   },
   "browser": {
@@ -17,7 +21,8 @@
     "moment": "./node_modules/moment/moment.js"
   },
   "scripts": {
-    "dev": "watchify src/main.js -o bin/debatmethodique.js -v --debug & browserify src/main.js > bin/debatmethodique.js -d & sass --watch src/css/style.scss:src/css/style.css & budo ./bin/debatmethodique.js --live",
+    "dev": "watchify -t pugify 'src/main.js' -o 'bin/debatmethodique.js' -v --debug & budo src/main.js:./bin/debatmethodique.js --live -- -t pugify 'src/main.js' -o 'bin/debatmethodique.js' -v --debug & sass --watch src/css/style.scss:src/css/style.css",
+    "old": "watchify src/main.js -o bin/debatmethodique.js -v --debug & browserify src/main.js > bin/debatmethodique.js -d & budo ./bin/debatmethodique.js --live",
     "css": "npx tailwind build src/css/style.css -o bin/debatmethodique.css -c tailwind.config.js"
   },
   "devDependencies": {
