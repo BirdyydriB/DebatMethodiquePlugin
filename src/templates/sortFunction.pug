@@ -1,10 +1,10 @@
 - var sortDesc = (sort_isActive && (sort_direction == 'desc'));
-- if(sortDesc) sort_class += ' active goodToBadColor';
+- if(sortDesc) sort_class += ' active goodToBadColor cursor-move';
 - var sortAsc = (sort_isActive && (sort_direction == 'asc'));
-- if(sortAsc) sort_class += ' active badToGoodColor';
+- if(sortAsc) sort_class += ' active badToGoodColor cursor-move';
 - if(!sort_isActive) sort_class += ' bg-gray-400';
 
-div(id=sort_id class=sort_class + ' sortFunction mx-1 py-1 px-4 rounded-full flex overflow-hidden cursor-move select-none border-2 border-solid')
+div(id=sort_id class=sort_class + ' sortFunction mx-1 py-1 px-4 rounded-full flex overflow-hidden select-none border-2 border-solid')
   div(class='px-1') #{sort_name}
     
   div(class='sortIconContainer flex items-center cursor-pointer')

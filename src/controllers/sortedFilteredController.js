@@ -58,8 +58,6 @@ class SortedFilteredController {
     this._isInSortedMode = false;
 
     this.setSortFunctionsWeight();
-    this._graphModel.mainSortFunction.classify();
-    this.sortCommentsToContainers();
 
     // Each comments : add a listener on selectCommentButton
     _.each(this._graphView.commentsView, (commentView) => {
@@ -77,6 +75,7 @@ class SortedFilteredController {
       }).bind(this));
     });
 
+    // Click on a sort direction icon : alternate from (desc => asc => !active => desc...)
     $('.sortIconContainer').click((e) => {
       const sortFunctionDOM = $(e.currentTarget).closest('.sortFunction');
       const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
@@ -91,7 +90,7 @@ class SortedFilteredController {
       else if(sortFunctionView.sortFunctionModel.sortDirection == 'asc') {
         sortFunctionDOM.removeClass('badToGoodColor');
         sortFunctionDOM.addClass('bg-gray-400');
-        sortFunctionDOM.removeClass('active');
+        sortFunctionDOM.removeClass(['active', 'cursor-move']);
         sortFunctionView.sortFunctionModel.isActive = false;
         sortFunctionView.sortFunctionModel.sortDirection = '';
         $(e.currentTarget).find('.sortIconUp').addClass('hidden');
@@ -99,7 +98,7 @@ class SortedFilteredController {
       }
       else if(!sortFunctionView.sortFunctionModel.isActive) {
         sortFunctionDOM.removeClass('bg-gray-400');
-        sortFunctionDOM.addClass('active');
+        sortFunctionDOM.addClass('active cursor-move');
         sortFunctionDOM.addClass('goodToBadColor');
         sortFunctionView.sortFunctionModel.isActive = true;
         sortFunctionView.sortFunctionModel.sortDirection = 'desc';
@@ -107,17 +106,82 @@ class SortedFilteredController {
         $(e.currentTarget).find('.sortIconDown').removeClass('hidden');
       }
 
-      // if (sortFunctionView.sortFunctionModel.isActive) {
-      //   sortFunctionView.showAll();
-      // }
-      // else {
-      //   sortFunctionView.hideAll();
-      // }
-
       this.setSortFunctionsWeight();
-      this._graphModel.mainSortFunction.classify();
-      this.sortCommentsToContainers();
       this.showSortContainers();
+    });
+
+    // Drag and Drop sortFunctions to change theire weight
+    $('.sortIconContainer').mousedown((mousedownEvent) => {
+      mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortIcon
+    });
+    $('.sortFunction').mousedown((mousedownEvent) => {
+      if($(mousedownEvent.currentTarget).hasClass('active')) {
+        // Create the separator, to visualize the index changes on dragging
+        $(mousedownEvent.currentTarget).after('<div id="sortFunctionSeparator" class="border-dashed border-l-2 border-gray-600 ml-1 self-stretched">&nbsp;</div>');
+
+        // Get sort functions positions, to know where to change index
+        var positions = [];
+        var currentTargetIndex;
+        _.each($('.sortFunction'), (sortFunction, index) => {
+          positions.push($(sortFunction).position().left + ($(sortFunction).width() / 2));
+          if($(sortFunction).attr('id') == $(mousedownEvent.currentTarget).attr('id')) {
+            currentTargetIndex = index;
+          }
+        });
+
+        // Create the draggable item, "ghost" clone of sort function clicked
+        var sortFunctionClone = $(mousedownEvent.currentTarget).clone();
+        const startLeft = $(mousedownEvent.currentTarget).position().left;
+        sortFunctionClone.addClass('absolute z-20');
+        sortFunctionClone.removeClass('sortFunction');
+        sortFunctionClone.css('left', startLeft);
+        sortFunctionClone.css('opacity', 0.8);
+        sortFunctionClone.appendTo($(mousedownEvent.currentTarget).parent());
+
+        // On mouse move : drag
+        const shiftX = mousedownEvent.clientX;
+        var currentSortIndex = 0;
+        $(document).mousemove((me) => {
+          // Drag sortFunctionClone
+          const newLeft = Math.max($('.sortFunction:first').position().left, startLeft + (me.clientX - shiftX));
+          sortFunctionClone.css('left', newLeft);
+
+          // Get (child) index where we have to insert separator
+          currentSortIndex = _.sortedIndex(positions, newLeft);
+          if(currentSortIndex == currentTargetIndex) {
+            // Jump index if we are over currentTarget
+            currentSortIndex++;
+          }
+          // Insert separator at right index
+          if(currentSortIndex == $('.sortFunction').length) {
+            $('#sortFunctionSeparator').insertAfter($('.sortFunction')[currentSortIndex - 1]);
+          }
+          else {
+            $('#sortFunctionSeparator').insertBefore($('.sortFunction')[currentSortIndex]);
+          }
+        });
+
+        // Mouse up : drop at right index
+        $(document).mouseup((mouseupEvent) => {
+          // Remove listeners
+          $(document).off('mousemove');
+          $(document).off('mouseup');
+          // And UI helpers
+          sortFunctionClone.remove();
+          $('#sortFunctionSeparator').remove();
+          // Drop at right index
+          if(currentSortIndex == $('.sortFunction').length) {
+            $(mousedownEvent.currentTarget).insertAfter($('.sortFunction')[currentSortIndex - 1]);
+          }
+          else {
+            $(mousedownEvent.currentTarget).insertBefore($('.sortFunction')[currentSortIndex]);
+          }
+
+          // Sort change : recalculate weight and sort comments again
+          this.setSortFunctionsWeight();
+          this.showSortContainers();
+        });
+      }
     });
 
     return this;
@@ -125,12 +189,15 @@ class SortedFilteredController {
 
   setSortFunctionsWeight() {
     var childs = $('#sortFilterBar').children('.active');
-    var weight = childs.length;
-    for(var sortFilterFunctionDOM of childs) {
+    for(var weight = childs.length - 1 ; weight >= 0 ; weight--) {
+      var sortFilterFunctionDOM = childs[weight];
+      $('#sortFilterBar').prepend(sortFilterFunctionDOM);
       const sortFunction = this._graphModel.mainSortFunction.allSortFunctions[$(sortFilterFunctionDOM).attr('id')];
-      sortFunction.weight = weight;
-      weight--;
+      sortFunction.weight = childs.length - weight;
     }
+    // Weights change : sort again
+    this._graphModel.mainSortFunction.classify();
+    this.sortCommentsToContainers();
   }
 
   sortCommentsToContainers() {
@@ -169,7 +236,7 @@ class SortedFilteredController {
     });
   }
 
-  toggle() {
+  toggleSortMode() {
     if(this._isInSortedMode) {
       this.sortToGraph();
       this._isInSortedMode = false;

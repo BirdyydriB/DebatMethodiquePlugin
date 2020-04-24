@@ -44,7 +44,7 @@ class MenuController {
     $('#menuContainer #filterSortButton').click(() => {
       $('#menuContainer #filterSortButton').toggleClass('active');
       $('#menuContainer #sortFilterBar').toggle();
-      this.sortedFilteredController.toggle();
+      this.sortedFilteredController.toggleSortMode();
     });
 
     return this;
