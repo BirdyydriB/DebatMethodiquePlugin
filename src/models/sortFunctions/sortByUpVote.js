@@ -14,14 +14,13 @@ class SortByUpVote extends sort_function.SortFunction {
   /**
    * Create a SortByUpVote function
    * @class
-   * @param {Object.<CommentModel>} comments - Key : the comment Id. All the comments
    * @returns {SortByUpVote} this, all comments sorted and classified by number of up vote
    */
-  constructor(comments) {
-    super(comments, 0.1);
+  constructor() {
+    super();
     this._label = localize('SORT_FUNCTION_UPVOTE_LABEL');
     this._id = 'sortByUpVote';
-    this._isActive = false;
+    this._relativeDiffMax = 0.1;
     return this;
   }
   /**

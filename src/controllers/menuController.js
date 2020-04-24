@@ -47,22 +47,6 @@ class MenuController {
       this.sortedFilteredController.toggle();
     });
 
-    $('#menuContainer .sortFunction').click((e) => {
-      const sortFunctionView = this._graphController.graphView.allSortFunctionsView[$(e.currentTarget).attr('id')];
-      sortFunctionView.sortFunctionModel.isActive = !sortFunctionView.sortFunctionModel.isActive;
-
-      if (sortFunctionView.sortFunctionModel.isActive) {
-        $(e.currentTarget).addClass('bg-goodColor');
-        $(e.currentTarget).removeClass('bg-gray-600');
-        sortFunctionView.showAll();
-      }
-      else {
-        $(e.currentTarget).removeClass('bg-goodColor');
-        $(e.currentTarget).addClass('bg-gray-600');
-        sortFunctionView.hideAll();
-      }
-    });
-
     return this;
   }
 }

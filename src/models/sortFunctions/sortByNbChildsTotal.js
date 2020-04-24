@@ -18,13 +18,13 @@ class SortByNbChildsTotal extends sort_function.SortFunction {
   /**
    * Create a SortByNbChildsTotal function
    * @class
-   * @param {Object.<CommentModel>} comments - Key : the comment Id. All the comments
    * @returns {SortByNbChildsTotal} this, all comments sorted and classified by number total of children
    */
-  constructor(comments) {
-    super(comments, 0.3);
+  constructor() {
+    super();
     this._label = localize('SORT_FUNCTION_NBCHILDSTOTAL_LABEL');
     this._id = 'sortByNbChildsTotal';
+    this._relativeDiffMax = 0.3;
     return this;
   }
   /**

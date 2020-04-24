@@ -8,5 +8,5 @@ module.exports = {
   SORT_FUNCTION_UPVOTE_LABEL : 'vote',
   SORT_FUNCTION_DATE_LABEL : 'date',
   SORT_FUNCTION_NBCHILDS_LABEL : 'answers',
-  SORT_FUNCTION_NBCHILDSTOTAL_LABEL : 'answers (total)',
+  SORT_FUNCTION_NBCHILDSTOTAL_LABEL : 'answers (total)'
 }

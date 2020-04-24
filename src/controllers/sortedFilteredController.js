@@ -55,10 +55,11 @@ class SortedFilteredController {
     this._graphModel = graphModel;
     this._graphView = graphView;
     this._graphNavigator = graphNavigator;
+    this._isInSortedMode = false;
 
+    this.setSortFunctionsWeight();
     this._graphModel.mainSortFunction.classify();
     this.sortCommentsToContainers();
-    this._isInSortedMode = false;
 
     // Each comments : add a listener on selectCommentButton
     _.each(this._graphView.commentsView, (commentView) => {
@@ -76,11 +77,69 @@ class SortedFilteredController {
       }).bind(this));
     });
 
+    $('.sortIconContainer').click((e) => {
+      const sortFunctionDOM = $(e.currentTarget).closest('.sortFunction');
+      const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+
+      if(sortFunctionView.sortFunctionModel.sortDirection == 'desc') {
+        sortFunctionDOM.removeClass('goodToBadColor');
+        sortFunctionDOM.addClass('badToGoodColor');
+        sortFunctionView.sortFunctionModel.sortDirection = 'asc';
+        $(e.currentTarget).find('.sortIconDown').addClass('hidden');
+        $(e.currentTarget).find('.sortIconUp').removeClass('hidden');
+      }
+      else if(sortFunctionView.sortFunctionModel.sortDirection == 'asc') {
+        sortFunctionDOM.removeClass('badToGoodColor');
+        sortFunctionDOM.addClass('bg-gray-400');
+        sortFunctionDOM.removeClass('active');
+        sortFunctionView.sortFunctionModel.isActive = false;
+        sortFunctionView.sortFunctionModel.sortDirection = '';
+        $(e.currentTarget).find('.sortIconUp').addClass('hidden');
+        $(e.currentTarget).find('.sortIconNone').removeClass('hidden');
+      }
+      else if(!sortFunctionView.sortFunctionModel.isActive) {
+        sortFunctionDOM.removeClass('bg-gray-400');
+        sortFunctionDOM.addClass('active');
+        sortFunctionDOM.addClass('goodToBadColor');
+        sortFunctionView.sortFunctionModel.isActive = true;
+        sortFunctionView.sortFunctionModel.sortDirection = 'desc';
+        $(e.currentTarget).find('.sortIconNone').addClass('hidden');
+        $(e.currentTarget).find('.sortIconDown').removeClass('hidden');
+      }
+
+      // if (sortFunctionView.sortFunctionModel.isActive) {
+      //   sortFunctionView.showAll();
+      // }
+      // else {
+      //   sortFunctionView.hideAll();
+      // }
+
+      this.setSortFunctionsWeight();
+      this._graphModel.mainSortFunction.classify();
+      this.sortCommentsToContainers();
+      this.showSortContainers();
+    });
+
     return this;
   }
 
+  setSortFunctionsWeight() {
+    var childs = $('#sortFilterBar').children('.active');
+    var weight = childs.length;
+    for(var sortFilterFunctionDOM of childs) {
+      const sortFunction = this._graphModel.mainSortFunction.allSortFunctions[$(sortFilterFunctionDOM).attr('id')];
+      sortFunction.weight = weight;
+      weight--;
+    }
+  }
+
   sortCommentsToContainers() {
-    _.each(this._graphModel.mainSortFunction.classes, (sortClass) => {
+    $('.commentContainer').prependTo($('#commentsContainer'));
+    $('.sortContainer').remove();
+
+    for(var i = 0 ; i < this._graphModel.mainSortFunction.classes.length ; i++) {
+      const sortClass = this._graphModel.mainSortFunction.classes[i];
+
       // Create the flex container
       const sortContainer = $('<div class="sortContainer flex flex-wrap justify-start" color="' + sortClass.color + '"></div>');
       $('#commentsContainer').prepend(sortContainer);
@@ -91,6 +150,22 @@ class SortedFilteredController {
         // And set header color
         this._graphView.commentsView[commentId].setHeaderColor(sortClass.color);
       });
+    }
+  }
+
+  showSortContainers() {
+    $('#commentsContainer').addClass('flex flex-col justify-between');
+    $('.sortContainer').each((index, container) => {
+      $(container).addClass('m-2 border-l-3 border-solid rounded');
+      $(container).css('border-color', $(container).attr('color'));
+    });
+  }
+
+  hideSortContainers() {
+    $('#commentsContainer').removeClass(['flex', 'flex-col', 'justify-between']);
+    $('.sortContainer').each((index, container) => {
+      $(container).removeClass(['m-2', 'border-l-3', 'border-solid', 'rounded']);
+      $(container).css('border-color', '');
     });
   }
 
@@ -116,12 +191,7 @@ class SortedFilteredController {
     // And graph coordinates
     $('#graphCoordinates').hide();
 
-    // "show" the sortContainers
-    $('#commentsContainer').addClass('flex flex-col justify-between');
-    $('.sortContainer').each((index, container) => {
-      $(container).addClass('m-2 border-l-3 border-solid rounded');
-      $(container).css('border-color', $(container).attr('color'));
-    });
+    this.showSortContainers();
 
     _.each(this._graphView.commentsView, (commentView) => {
       // Remove comment selection, only available in Graph mode
@@ -165,27 +235,13 @@ class SortedFilteredController {
     });
   }
 
-  selectComment(commentView) {
-    commentView.css('outline-color', GOOD_COLOR);
-    commentView.addClass('outline-3 outline-solid');
-  }
-  unselectComment(commentView) {
-    commentView.css('outline-color', '');
-    commentView.removeClass(['outline-3', 'outline-solid']);
-  }
-
   sortToGraph() {
     // Show again relations beetween comments
     $('#relationsContainer').show();
     // And graph coordinates
     $('#graphCoordinates').show();
 
-    // "hide" the sortContainers
-    $('#commentsContainer').removeClass(['flex', 'flex-col', 'justify-between']);
-    $('.sortContainer').each((index, container) => {
-      $(container).removeClass(['m-2', 'border-l-3', 'border-solid', 'rounded']);
-      $(container).css('border-color', '');
-    });
+    this.hideSortContainers();
 
     _.each(this._graphView.commentsView, (commentView) => {
       // Position will be calculated again
@@ -217,6 +273,16 @@ class SortedFilteredController {
 
     // We can animate graph again
     animation_manager.animated = true;
+  }
+
+  selectComment(commentView) {
+    commentView.css('outline-color', GOOD_COLOR);
+    commentView.addClass('outline-3 outline-solid');
+  }
+
+  unselectComment(commentView) {
+    commentView.css('outline-color', '');
+    commentView.removeClass(['outline-3', 'outline-solid']);
   }
 
 

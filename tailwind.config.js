@@ -7,9 +7,9 @@ module.exports = {
       colors: {
         goodColor: 'var(--color-goodColor)',
         middleColor: 'var(--color-middleColor)',
-        badColor: 'var(--color-badColor)'
+        badColor: 'var(--color-badColor)'        
       }
-    },    
+    },
   },
   variants: {},
   plugins: [],

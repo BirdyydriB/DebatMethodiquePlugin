@@ -42,4 +42,19 @@
   stroke: gray;
   stroke-width: 4; }
 
+.goodToBadColor {
+  background: linear-gradient(to right, var(--color-goodColor), var(--color-middleColor), var(--color-badColor)); }
+
+.badToGoodColor {
+  background: linear-gradient(to right, var(--color-badColor), var(--color-middleColor), var(--color-goodColor)); }
+
+.radialBadGoodColor {
+  background: radial-gradient(circle at center, var(--color-goodColor), var(--color-middleColor), var(--color-badColor)); }
+
+.sortFunction {
+  @apply border-white; }
+
+.sortFunction.selected {
+  @apply border-red-600; }
+
 /*# sourceMappingURL=style.css.map */

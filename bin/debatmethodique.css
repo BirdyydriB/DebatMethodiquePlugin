@@ -14252,6 +14252,26 @@ video {
   stroke-width: 4;
 }
 
+.goodToBadColor {
+  background: linear-gradient(to right, var(--color-goodColor), var(--color-middleColor), var(--color-badColor));
+}
+
+.badToGoodColor {
+  background: linear-gradient(to right, var(--color-badColor), var(--color-middleColor), var(--color-goodColor));
+}
+
+.radialBadGoodColor {
+  background: radial-gradient(circle at center, var(--color-goodColor), var(--color-middleColor), var(--color-badColor));
+}
+
+.sortFunction {
+  border-color: #fff;
+}
+
+.sortFunction.selected {
+  border-color: #e53e3e;
+}
+
 @media (min-width: 640px) {
   .sm\:sr-only {
     position: absolute;

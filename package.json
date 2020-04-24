@@ -22,7 +22,6 @@
   },
   "scripts": {
     "dev": "watchify -t pugify 'src/main.js' -o 'bin/debatmethodique.js' -v --debug & budo src/main.js:./bin/debatmethodique.js --live -- -t pugify 'src/main.js' -o 'bin/debatmethodique.js' -v --debug & sass --watch src/css/style.scss:src/css/style.css",
-    "old": "watchify src/main.js -o bin/debatmethodique.js -v --debug & browserify src/main.js > bin/debatmethodique.js -d & budo ./bin/debatmethodique.js --live",
     "css": "npx tailwind build src/css/style.css -o bin/debatmethodique.css -c tailwind.config.js"
   },
   "devDependencies": {

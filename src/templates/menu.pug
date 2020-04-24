@@ -27,8 +27,8 @@ div(id='mainMenuBar' class='w-full inline-block')
   include button.pug
 
   div(id='sortFilterBar' class='w-full inline-block p-2')
-    - var sort_class = 'float-left';
     each sortFunction in allSortFunctions
+      - var sort_class = 'float-left';
       - var sort_id = sortFunction.id;
       - var sort_name = sortFunction.label;
       - var sort_isActive = sortFunction.isActive;
