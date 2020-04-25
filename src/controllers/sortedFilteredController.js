@@ -143,7 +143,13 @@ class SortedFilteredController {
         var currentSortIndex = 0;
         $(document).mousemove((me) => {
           // Drag sortFunctionClone
-          const newLeft = Math.max($('.sortFunction:first').position().left, startLeft + (me.clientX - shiftX));
+          const lastActive = $('.sortFunction.active:last');
+          const newLeft = Math.min(
+                            lastActive.position().left + lastActive.outerWidth(true) + 10, // Maximum left
+                            Math.max(
+                              $('.sortFunction:first').position().left, // Minimum left
+                              startLeft + (me.clientX - shiftX))
+                          );
           sortFunctionClone.css('left', newLeft);
 
           // Get (child) index where we have to insert separator
