@@ -23,6 +23,7 @@ class SortByNbChildsTotal extends sort_function.SortFunction {
   constructor() {
     super();
     this._label = localize('SORT_FUNCTION_NBCHILDSTOTAL_LABEL');
+    this._measurementLabel = localize('SORT_FUNCTION_NBCHILDSTOTAL_MEASUREMENT_LABEL');
     this._id = 'sortByNbChildsTotal';
     this._relativeDiffMax = 0.3;
     return this;

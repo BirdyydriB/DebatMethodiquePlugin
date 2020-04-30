@@ -32,6 +32,10 @@ const colors = require("../../utils/colors");
   get label() {
     return this._label;
   }
+  _measurementLabel; // String | Measurement name
+  get measurementLabel() {
+    return this._measurementLabel;
+  }
   _id; // String | Id of the sort function
   get id() {
     return this._id;
@@ -107,7 +111,12 @@ const colors = require("../../utils/colors");
   classify(comments, classifyArgument) {
     // Sort datas
     const sortedComments = _.sortBy(comments, (comment) => {
-      return this.getValueToSort(comment);
+      const commentScore = this.getValueToSort(comment);
+      this._commentsClass[comment.id] = {
+        classIndex: null,
+        commentScore: commentScore
+      };
+      return commentScore;
     });
 
     if(this._classifyMethod == 'largeRelativeDifferenceMethod') {
@@ -117,6 +126,8 @@ const colors = require("../../utils/colors");
     else if(this._classifyMethod == 'sameSizeClasses') {
       this.sameSizeClasses(sortedComments, this._chunkSize);
     }
+
+    console.log(this._label, this._commentsClass, this._classes);
 
     for (var i = 0; i < this._classes.length; i++) {
       if(this._classes.length == 1) {
@@ -144,16 +155,16 @@ const colors = require("../../utils/colors");
       };
       _.each(chunkedComments[currentClassIndex], (comment) => {
         this._classes[currentClassIndex].comments.push(comment.id);
-        this._commentsClass[comment.id] = currentClassIndex;
+        this._commentsClass[comment.id]['classIndex'] = currentClassIndex;
       });
     }
   }
 
   largeRelativeDifferenceMethod(sortedComments, relativeDiffMax) {
     // Normalize datas btw 0.1 & 1.1
-    const maxVal = this.getValueToSort(sortedComments[sortedComments.length - 1]);
+    const maxVal = this._commentsClass[sortedComments[sortedComments.length - 1].id].commentScore;
     const normalized = _.map(sortedComments, (comment) => {
-      return (this.getValueToSort(comment) / maxVal) + 0.1;
+      return (this._commentsClass[comment.id].commentScore / maxVal) + 0.1;
     });
 
     var currentClassIndex = 0;
@@ -161,12 +172,13 @@ const colors = require("../../utils/colors");
       color: null,
       comments: [sortedComments[0].id]
     }];
-    this._commentsClass[sortedComments[0].id] = 0;
+    this._commentsClass[sortedComments[0].id]['classIndex'] = 0;
 
     for (var i = 1; i < sortedComments.length; i++) {
       const relativeDiff = ((normalized[i] - normalized[i - 1]) / normalized[i - 1]);
 
       if (relativeDiff > relativeDiffMax) {
+        // Init new class
         currentClassIndex++;
         this._classes[currentClassIndex] = {
           color: null,
@@ -175,7 +187,7 @@ const colors = require("../../utils/colors");
       }
 
       this._classes[currentClassIndex].comments.push(sortedComments[i].id);
-      this._commentsClass[sortedComments[i].id] = currentClassIndex;
+      this._commentsClass[sortedComments[i].id]['classIndex'] = currentClassIndex;
     }
   }
 

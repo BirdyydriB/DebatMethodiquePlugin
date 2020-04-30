@@ -139,17 +139,17 @@ class CommentView {
 
     // Set bg-color/text-color for nbChildren, nbChildrenTotal and upVote
     const nbChildrenDOM = this.commentView.find('.commentFooter>.infosContainer>.answersContainer>.iconContainer');
-    allSortFunctions.sortByNbChilds.add(this._commentModel.id, nbChildrenDOM);
+    allSortFunctions.sortByNbChilds.addClassReminder(this._commentModel.id, nbChildrenDOM);
 
     const allAnswersContainerDOM = this.commentView.find('.commentFooter>.infosContainer>.allAnswersContainer');
     const nbChildrenTotalDOM = allAnswersContainerDOM.find('.iconContainer');
-    allSortFunctions.sortByNbChildsTotal.add(this._commentModel.id, nbChildrenTotalDOM);
-    if(commentModel.childrenCommentsId.length == commentModel.allChildren.length) {
+    allSortFunctions.sortByNbChildsTotal.addClassReminder(this._commentModel.id, nbChildrenTotalDOM);
+    if(commentModel.allChildren.length == 0) {
       allAnswersContainerDOM.hide();
     }
 
     const nbUpVoteDOM = this.commentView.find('.commentFooter>.infosContainer>.upVoteContainer>.iconContainer');
-    allSortFunctions.sortByUpVote.add(this._commentModel.id, nbUpVoteDOM);
+    allSortFunctions.sortByUpVote.addClassReminder(this._commentModel.id, nbUpVoteDOM);
 
     // Test height & width values after selection
     this.commentView.css('width', COMMENT_EXPANDED_WIDTH);

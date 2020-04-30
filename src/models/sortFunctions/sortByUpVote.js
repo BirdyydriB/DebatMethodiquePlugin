@@ -19,6 +19,7 @@ class SortByUpVote extends sort_function.SortFunction {
   constructor() {
     super();
     this._label = localize('SORT_FUNCTION_UPVOTE_LABEL');
+    this._measurementLabel = localize('SORT_FUNCTION_UPVOTE_MEASUREMENT_LABEL');
     this._id = 'sortByUpVote';
     this._relativeDiffMax = 0.1;
     return this;

@@ -11,8 +11,6 @@ const {
 } = require('../parameters/constants');
 const animation_manager = require("../views/animationManager");
 
-
-
 /**
  * When
  */
@@ -71,133 +69,174 @@ class SortedFilteredController {
         // Close Sort/Filter menu
         this._isInSortedMode = false;
         $('#filterSortButton').removeClass('active');
-        $('#sortFilterBar').hide();
+        $('#sortFunctionsContainer').hide();
       }).bind(this));
     });
 
     // Click on a sort direction icon : alternate from (desc => asc => !active => desc...)
     $('.sortIconContainer').click((e) => {
       const sortFunctionDOM = $(e.currentTarget).closest('.sortFunction');
+      this.updateSortFunctionSortDirection(sortFunctionDOM);
+    });
+
+    // Modify parameters of a sort function
+    $('.sortParameters').click((e) => {
+      const sortFunctionDOM = $(e.currentTarget).closest('.sortFunction');
       const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
 
-      if(sortFunctionView.sortFunctionModel.sortDirection == 'desc') {
-        sortFunctionDOM.removeClass('goodToBadColor');
-        sortFunctionDOM.addClass('badToGoodColor');
-        sortFunctionView.sortFunctionModel.sortDirection = 'asc';
-        $(e.currentTarget).find('.sortIconDown').addClass('hidden');
-        $(e.currentTarget).find('.sortIconUp').removeClass('hidden');
+      if(sortFunctionView.isSelected()) {
+        // Parameters opened for this function : close it
+        sortFunctionView.unselect();
+        $('#sortFunctionParameters').addClass('hidden');
       }
-      else if(sortFunctionView.sortFunctionModel.sortDirection == 'asc') {
-        sortFunctionDOM.removeClass('badToGoodColor');
-        sortFunctionDOM.addClass('bg-gray-400');
-        sortFunctionDOM.removeClass(['active', 'cursor-move']);
-        sortFunctionView.sortFunctionModel.isActive = false;
-        sortFunctionView.sortFunctionModel.sortDirection = '';
-        $(e.currentTarget).find('.sortIconUp').addClass('hidden');
-        $(e.currentTarget).find('.sortIconNone').removeClass('hidden');
+      else {
+        // If an other sort function was selected, unselect
+        const previousSelected = _.find(this._graphView.allSortFunctionsView, (sortFunctionView) => {
+          return sortFunctionView.isSelected();
+        });
+        if(previousSelected) {
+          previousSelected.unselect();
+        }
+        // Select sort function
+        sortFunctionView.select();
+        sortFunctionView.refreshParameters(this._graphView._barChart);
+        if($('#sortFunctionParameters').hasClass('hidden')) {
+          // Sort parameters is hidden : show it
+          $('#sortFunctionParameters').removeClass('hidden');
+        }
       }
-      else if(!sortFunctionView.sortFunctionModel.isActive) {
-        sortFunctionDOM.removeClass('bg-gray-400');
-        sortFunctionDOM.addClass('active cursor-move');
-        sortFunctionDOM.addClass('goodToBadColor');
-        sortFunctionView.sortFunctionModel.isActive = true;
-        sortFunctionView.sortFunctionModel.sortDirection = 'desc';
-        $(e.currentTarget).find('.sortIconNone').addClass('hidden');
-        $(e.currentTarget).find('.sortIconDown').removeClass('hidden');
-      }
-
-      this.setSortFunctionsWeight();
-      this.showSortContainers();
     });
 
     // Drag and Drop sortFunctions to change theire weight
     $('.sortIconContainer').mousedown((mousedownEvent) => {
       mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortIcon
     });
+    $('.sortParameters').mousedown((mousedownEvent) => {
+      mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortParameters
+    });
     $('.sortFunction').mousedown((mousedownEvent) => {
-      if($(mousedownEvent.currentTarget).hasClass('active')) {
-        // Create the separator, to visualize the index changes on dragging
-        $(mousedownEvent.currentTarget).after('<div id="sortFunctionSeparator" class="border-dashed border-l-2 border-gray-600 ml-1 self-stretched">&nbsp;</div>');
-
-        // Get sort functions positions, to know where to change index
-        var positions = [];
-        var currentTargetIndex;
-        _.each($('.sortFunction'), (sortFunction, index) => {
-          positions.push($(sortFunction).position().left + ($(sortFunction).width() / 2));
-          if($(sortFunction).attr('id') == $(mousedownEvent.currentTarget).attr('id')) {
-            currentTargetIndex = index;
-          }
-        });
-
-        // Create the draggable item, "ghost" clone of sort function clicked
-        var sortFunctionClone = $(mousedownEvent.currentTarget).clone();
-        const startLeft = $(mousedownEvent.currentTarget).position().left;
-        sortFunctionClone.addClass('absolute z-20');
-        sortFunctionClone.removeClass('sortFunction');
-        sortFunctionClone.css('left', startLeft);
-        sortFunctionClone.css('opacity', 0.8);
-        sortFunctionClone.appendTo($(mousedownEvent.currentTarget).parent());
-
-        // On mouse move : drag
-        const shiftX = mousedownEvent.clientX;
-        var currentSortIndex = 0;
-        $(document).mousemove((me) => {
-          // Drag sortFunctionClone
-          const lastActive = $('.sortFunction.active:last');
-          const newLeft = Math.min(
-                            lastActive.position().left + lastActive.outerWidth(true) + 10, // Maximum left
-                            Math.max(
-                              $('.sortFunction:first').position().left, // Minimum left
-                              startLeft + (me.clientX - shiftX))
-                          );
-          sortFunctionClone.css('left', newLeft);
-
-          // Get (child) index where we have to insert separator
-          currentSortIndex = _.sortedIndex(positions, newLeft);
-          if(currentSortIndex == currentTargetIndex) {
-            // Jump index if we are over currentTarget
-            currentSortIndex++;
-          }
-          // Insert separator at right index
-          if(currentSortIndex == $('.sortFunction').length) {
-            $('#sortFunctionSeparator').insertAfter($('.sortFunction')[currentSortIndex - 1]);
-          }
-          else {
-            $('#sortFunctionSeparator').insertBefore($('.sortFunction')[currentSortIndex]);
-          }
-        });
-
-        // Mouse up : drop at right index
-        $(document).mouseup((mouseupEvent) => {
-          // Remove listeners
-          $(document).off('mousemove');
-          $(document).off('mouseup');
-          // And UI helpers
-          sortFunctionClone.remove();
-          $('#sortFunctionSeparator').remove();
-          // Drop at right index
-          if(currentSortIndex == $('.sortFunction').length) {
-            $(mousedownEvent.currentTarget).insertAfter($('.sortFunction')[currentSortIndex - 1]);
-          }
-          else {
-            $(mousedownEvent.currentTarget).insertBefore($('.sortFunction')[currentSortIndex]);
-          }
-
-          // Sort change : recalculate weight and sort comments again
-          this.setSortFunctionsWeight();
-          this.showSortContainers();
-        });
-      }
+      this.dragAndDropSortFunction(mousedownEvent);
     });
 
     return this;
   }
 
+  updateSortFunctionSortDirection(sortFunctionDOM) {
+    const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+
+    if(sortFunctionView.sortFunctionModel.sortDirection == 'desc') {
+      // Desc to Asc
+      sortFunctionView.sortFunctionModel.sortDirection = 'asc';
+    }
+    else if(sortFunctionView.sortFunctionModel.sortDirection == 'asc') {
+      // Asc to !Active
+      sortFunctionView.sortFunctionModel.isActive = false;
+      sortFunctionView.sortFunctionModel.sortDirection = '';
+
+      if(sortFunctionView.isSelected()) {
+        // Parameters opened for this function : close it
+        sortFunctionView.unselect();
+        $('#sortFunctionParameters').addClass('hidden');
+      }
+    }
+    else if(!sortFunctionView.sortFunctionModel.isActive) {
+      //!Active to Desc
+      sortFunctionView.sortFunctionModel.isActive = true;
+      sortFunctionView.sortFunctionModel.sortDirection = 'desc';
+    }
+
+    sortFunctionView.refresh();
+    if(sortFunctionView.isSelected()) {
+      // Parameters opened for this function : update it
+      sortFunctionView.refreshParameters(this._graphView._barChart);
+    }
+    this.setSortFunctionsWeight();
+    this.showSortContainers();
+  }
+
+  dragAndDropSortFunction(mousedownEvent) {
+    const sortFunctionDOM = $(mousedownEvent.currentTarget);
+    const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+    if(sortFunctionView.sortFunctionModel.isActive) {
+      // Create the separator, to visualize the index changes on dragging
+      sortFunctionDOM.after('<div id="sortFunctionSeparator" class="border-dashed border-l-2 border-gray-600 ml-1 self-stretched">&nbsp;</div>');
+
+      // Get sort functions positions, to know where to change index
+      var positions = [];
+      var currentTargetIndex;
+      _.each(this._graphView.allSortFunctionsView, (currentSortFunctionView, index) => {
+        positions.push(currentSortFunctionView.sortFunctionDOM.position().left + (currentSortFunctionView.sortFunctionDOM.width() / 2));
+        if(sortFunctionView.sortFunctionModel.id == currentSortFunctionView.sortFunctionModel.id) {
+          currentTargetIndex = index;
+        }
+      });
+
+      // Create the draggable item, "ghost" clone of sort function clicked
+      var sortFunctionClone = sortFunctionDOM.clone();
+      const startLeft = sortFunctionDOM.position().left;
+      sortFunctionClone.addClass('absolute z-20');
+      sortFunctionClone.removeClass('sortFunction');
+      sortFunctionClone.css('left', startLeft);
+      sortFunctionClone.css('opacity', 0.8);
+      sortFunctionClone.appendTo(sortFunctionDOM.parent());
+
+      // On mouse move : drag
+      const shiftX = mousedownEvent.clientX;
+      var currentSortIndex = 0;
+      $(document).mousemove((me) => {
+        // Drag sortFunctionClone
+        const lastActive = $('.sortFunction.active:last');
+        const newLeft = Math.min(
+                          lastActive.position().left + lastActive.outerWidth(true) + 10, // Maximum left
+                          Math.max(
+                            $('.sortFunction:first').position().left, // Minimum left
+                            startLeft + (me.clientX - shiftX))
+                        );
+        sortFunctionClone.css('left', newLeft);
+
+        // Get (child) index where we have to insert separator
+        currentSortIndex = _.sortedIndex(positions, newLeft);
+        if(currentSortIndex == currentTargetIndex) {
+          // Jump index if we are over currentTarget
+          currentSortIndex++;
+        }
+        // Insert separator at right index
+        if(currentSortIndex == $('.sortFunction').length) {
+          $('#sortFunctionSeparator').insertAfter($('.sortFunction')[currentSortIndex - 1]);
+        }
+        else {
+          $('#sortFunctionSeparator').insertBefore($('.sortFunction')[currentSortIndex]);
+        }
+      });
+
+      // Mouse up : drop at right index
+      $(document).mouseup((mouseupEvent) => {
+        // Remove listeners
+        $(document).off('mousemove');
+        $(document).off('mouseup');
+        // And UI helpers
+        sortFunctionClone.remove();
+        $('#sortFunctionSeparator').remove();
+        // Drop at right index
+        if(currentSortIndex == $('.sortFunction').length) {
+          sortFunctionDOM.insertAfter($('.sortFunction')[currentSortIndex - 1]);
+        }
+        else {
+          sortFunctionDOM.insertBefore($('.sortFunction')[currentSortIndex]);
+        }
+
+        // Sort change : recalculate weight and sort comments again
+        this.setSortFunctionsWeight();
+        this.showSortContainers();
+      });
+    }
+  }
+
   setSortFunctionsWeight() {
-    var childs = $('#sortFilterBar').children('.active');
+    var childs = $('#allSortFunctions').children('.active');
     for(var weight = childs.length - 1 ; weight >= 0 ; weight--) {
       var sortFilterFunctionDOM = childs[weight];
-      $('#sortFilterBar').prepend(sortFilterFunctionDOM);
+      $('#allSortFunctions').prepend(sortFilterFunctionDOM);
       const sortFunction = this._graphModel.mainSortFunction.allSortFunctions[$(sortFilterFunctionDOM).attr('id')];
       sortFunction.weight = childs.length - weight;
     }

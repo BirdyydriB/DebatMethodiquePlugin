@@ -23,6 +23,7 @@ const template_graph = require("../templates/graph.pug");
 const relation_view = require("../views/relationView");
 const comment_view = require("../views/commentView");
 const sortFunction_view = require("../views/sortFunctionView");
+const sortFunctionBarChart = require("../utils/barChart");
 const animation_manager = require("../views/animationManager");
 const colors = require("../utils/colors");
 const { Array2D } = require('../utils/array2D');
@@ -109,11 +110,15 @@ class GraphView {
     this._d3RelactionContainer = d3s.select('#relationsContainer')
       .append('svg:svg');
 
-    // Create sort function views
+    // Create sort function views TODO moove from here
     _.each(this._graphModel.mainSortFunction.allSortFunctions, (sortFunctionModel) => {
-      const sortFunctionView = new sortFunction_view.SortFunctionView(sortFunctionModel);
+      const sortFunctionView = new sortFunction_view.SortFunctionView(sortFunctionModel)
+        .init($('#allSortFunctions'));
       this._allSortFunctionsView[sortFunctionModel.id] = sortFunctionView;
     });
+    this._barChart = new sortFunctionBarChart.BarChart()
+      .init('#sortFunctionDistributionBarChart');
+    // end - TODO
 
     // Create commentsView
     _.each(this.graphModel.commentsModel, (comment, index) => {
@@ -136,13 +141,6 @@ class GraphView {
       // Save relation into child and parent commentView
       this.commentsView[relation.child.id].parentRelationView = relationView;
       this.commentsView[relation.parent.id].childRelationsView.push(relationView);
-    });
-
-    // Display sortFunctions colors (if isActive)
-    _.each(this._graphModel.mainSortFunction.allSortFunctions, (sortFunctionModel) => {
-      if(sortFunctionModel.isActive) {
-        this._allSortFunctionsView[sortFunctionModel.id].showAll();
-      }
     });
 
     // Listen to model changes

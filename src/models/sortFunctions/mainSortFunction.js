@@ -39,6 +39,8 @@ class MainSortFunction extends sort_function.SortFunction {
    */
   constructor() {
     super();
+    this._label = 'mainSortFunction';
+    this._id = 'mainSortFunction';
     return this;
   }
 
@@ -71,6 +73,9 @@ class MainSortFunction extends sort_function.SortFunction {
       if(sortedActiveFunctions[0].sortDirection == 'asc') {
         commentsByClass = commentsByClass.reverse();
       }
+      _.each(sortedActiveFunctions[0].commentsClass, (commentClass, index) => {
+        this._commentsClass[index] = _.clone(commentClass);
+      });
 
       for(var i = 1 ; i < sortedActiveFunctions.length ; i++) {
         var currentFunctionClasses = [];
@@ -78,9 +83,11 @@ class MainSortFunction extends sort_function.SortFunction {
         for(var j = 0 ; j < commentsByClass.length ; j++) {
           // GroupBy by current sort function classes
           currentFunctionClasses.push(_.toArray(_.groupBy(commentsByClass[j], (commentId) => {
-            return (sortedActiveFunctions[i].sortDirection == 'asc') ?
-              (sortedActiveFunctions[i].classes.length - sortedActiveFunctions[i].commentsClass[commentId]) :
-              sortedActiveFunctions[i].commentsClass[commentId];
+            const commentScore = (sortedActiveFunctions[i].sortDirection == 'asc') ?
+              (sortedActiveFunctions[i].classes.length - sortedActiveFunctions[i].commentsClass[commentId].classIndex) :
+              sortedActiveFunctions[i].commentsClass[commentId].classIndex;
+            this._commentsClass[commentId].commentScore += '>' + commentScore;
+            return commentScore;
           })));
         }
 
@@ -94,7 +101,6 @@ class MainSortFunction extends sort_function.SortFunction {
 
     // Save results into classes
     this._classes = [];
-    this._commentsClass = {};
     for (var i = 0; i < commentsByClass.length; i++) {
       const classColor = (commentsByClass.length == 1) ?
         '' : // Only one class, give a color does not make any sens
@@ -105,13 +111,13 @@ class MainSortFunction extends sort_function.SortFunction {
         comments: _.shuffle(commentsByClass[i]) // Randomify comments is a same class
       };
       _.each(commentsByClass[i], (commentId) => {
-        this._commentsClass[commentId] = i;
+        this._commentsClass[commentId].classIndex = i;
       });
     }
 
     // Sort all comments in graph
     this._graphModel.buildGrid((commentId) => {
-      return -this._commentsClass[commentId];
+      return -this._commentsClass[commentId].classIndex;
     });
   }
 

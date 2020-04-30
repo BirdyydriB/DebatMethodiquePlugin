@@ -27,11 +27,10 @@ class MenuView {
     this._graphModel = graphModel;
 
     $('#menuContainer').prepend(template_menu({
-      articleTitle: articleTitle,
-      allSortFunctions: this._graphModel.mainSortFunction.allSortFunctions
+      articleTitle: articleTitle
     }));
-    $('.sortFunction.isActive').addClass('bg-goodColor');
-    $('#menuContainer #sortFilterBar').hide();
+
+    $('#menuContainer #sortFunctionsContainer').hide();
 
     $('#menuContainer #centerSelectedButton').addClass('text-goodColor');
 

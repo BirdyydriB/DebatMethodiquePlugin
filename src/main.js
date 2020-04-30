@@ -28,8 +28,8 @@ function main(request, sender, sendResponse) {
       $(document.body).prepend(template_index({}));
       momentUtilities.initMoment();
       graphModel.init();
-      graphView.init(graphModel);
       menuView.init(graphModel);
+      graphView.init(graphModel);
       graphNavigator.init(graphModel, graphView);
       graphController.init(graphModel, graphView, graphNavigator);
       sortedFilteredController.init(graphModel, graphView, graphNavigator);

@@ -26,11 +26,4 @@ div(id='mainMenuBar' class='w-full inline-block')
   - var icon_size = 24;
   include button.pug
 
-  div(id='sortFilterBar' class='w-full inline-block p-2 flex')
-    each sortFunction in allSortFunctions
-      - var sort_class = 'float-left';
-      - var sort_id = sortFunction.id;
-      - var sort_name = sortFunction.label;
-      - var sort_isActive = sortFunction.isActive;
-      - var sort_direction = sortFunction.sortDirection;
-      include sortFunction.pug
+  include sortFilterFunctions.pug
