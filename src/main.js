@@ -7,6 +7,7 @@ var momentUtilities = require('./utils/moment-utilities');
 var menuView = require("./views/menuView");
 var graphModel = require("./models/graphModel");
 var graphView = require("./views/graphView");
+var sortedFilteredView = require("./views/sortedFilteredView");
 var graphController = require("./controllers/graphController");
 var graphNavigator = require("./controllers/graphNavigator");
 var menuController = require("./controllers/menuController");
@@ -30,9 +31,10 @@ function main(request, sender, sendResponse) {
       graphModel.init();
       menuView.init(graphModel);
       graphView.init(graphModel);
+      sortedFilteredView.init(graphModel, graphView);
       graphNavigator.init(graphModel, graphView);
       graphController.init(graphModel, graphView, graphNavigator);
-      sortedFilteredController.init(graphModel, graphView, graphNavigator);
+      sortedFilteredController.init(sortedFilteredView, graphNavigator);
       menuController.init(menuView, graphController, graphNavigator, sortedFilteredController);
     }
     else {

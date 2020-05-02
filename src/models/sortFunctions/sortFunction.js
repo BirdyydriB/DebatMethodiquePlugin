@@ -148,16 +148,17 @@ const colors = require("../../utils/colors");
       this.sameSizeClasses();
     }
 
-    if(classChange) {
-      for (var i = 0; i < this._classes.length; i++) {
-        if(this._classes.length == 1) {
-          // Only one class, give a color does not make any sens
-          this._classes[0].color = '';
-        }
-        else {
-          // Calculate colors from a gradient : red to green (threw yellow)
-          this._classes[i].color = colors.getGradientColor(BAD_COLOR, MIDDLE_COLOR, GOOD_COLOR, (i / (this.classes.length - 1)));
-        }
+    for (var i = 0; i < this._classes.length; i++) {
+      if(this._classes.length == 1) {
+        // Only one class, give a color does not make any sens
+        this._classes[0].color = '';
+      }
+      else {
+        // Calculate colors from a gradient : red to green (threw yellow)
+        this._classes[i].color = colors.getGradientColor(BAD_COLOR, MIDDLE_COLOR, GOOD_COLOR, (i / (this.classes.length - 1)));
+      }
+
+      if(classChange) {
         // Randomify comments is a same class
         this._classes[i].comments = _.shuffle(this._classes[i].comments);
       }

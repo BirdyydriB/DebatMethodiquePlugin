@@ -22,8 +22,6 @@ const {
 const template_graph = require("../templates/graph.pug");
 const relation_view = require("../views/relationView");
 const comment_view = require("../views/commentView");
-const sortFunction_view = require("../views/sortFunctionView");
-const sortFunctionBarChart = require("../utils/barChart");
 const animation_manager = require("../views/animationManager");
 const colors = require("../utils/colors");
 const { Array2D } = require('../utils/array2D');
@@ -74,10 +72,6 @@ class GraphView {
   get depthColors() {
     return this._depthColors;
   }
-  _allSortFunctionsView;
-  get allSortFunctionsView() {
-    return this._allSortFunctionsView;
-  }
 
   // --- Functions
   /**
@@ -91,7 +85,6 @@ class GraphView {
     this._commentsView = {};
     this._selectedPath = [];
     this._depthColors = [];
-    this._allSortFunctionsView = {};
     return this;
   }
 
@@ -110,20 +103,10 @@ class GraphView {
     this._d3RelactionContainer = d3s.select('#relationsContainer')
       .append('svg:svg');
 
-    // Create sort function views TODO moove from here
-    _.each(this._graphModel.mainSortFunction.allSortFunctions, (sortFunctionModel) => {
-      const sortFunctionView = new sortFunction_view.SortFunctionView(sortFunctionModel)
-        .init($('#allSortFunctions'));
-      this._allSortFunctionsView[sortFunctionModel.id] = sortFunctionView;
-    });
-    this._barChart = new sortFunctionBarChart.BarChart()
-      .init('#sortFunctionDistributionBarChart');
-    // end - TODO
-
     // Create commentsView
     _.each(this.graphModel.commentsModel, (comment, index) => {
       var newCommentView = new comment_view.CommentView()
-        .init(comment, $('#commentsContainer'), this._allSortFunctionsView);
+        .init(comment, $('#commentsContainer'));
 
       this.commentsView[index] = newCommentView;
     });

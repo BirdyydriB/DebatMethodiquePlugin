@@ -16,13 +16,9 @@ const animation_manager = require("../views/animationManager");
  */
 class SortedFilteredController {
   // --- Vars and accessors
-  _graphModel; // Singleton | The GraphModel
-  get graphModel() {
-    return this._graphModel;
-  }
-  _graphView; // Singleton | The GraphView
-  get graphView() {
-    return this._graphView;
+  _sortedFilteredView; // Singleton | The SortedFilteredView
+  get sortedFilteredView() {
+    return this._sortedFilteredView;
   }
   _graphNavigator; // Singleton | The GraphNavigator
   get graphNavigator() {
@@ -43,27 +39,25 @@ class SortedFilteredController {
   /**
     * Init the SortedFilteredController
     * @access public
-    * @param {GraphModel} graphModel - The model of the graph
-    * @param {GraphView} graphView - The view of the graph
+    * @param {SortedFilteredView} sortedFilteredView - The SortedFilteredView
     * @param {GraphNavigator} graphNavigator - The navigation controller of the graph
     * @returns {SortedFilteredController} this
     */
-  init(graphModel, graphView, graphNavigator) {
+  init(sortedFilteredView, graphNavigator) {
     console.log('SortedFilteredController init');
-    this._graphModel = graphModel;
-    this._graphView = graphView;
+    this._sortedFilteredView = sortedFilteredView;
     this._graphNavigator = graphNavigator;
     this._isInSortedMode = false;
 
     this.setSortFunctionsWeight();
 
     // Each comments : add a listener on selectCommentButton
-    _.each(this._graphView.commentsView, (commentView) => {
+    _.each(this._sortedFilteredView.graphView.commentsView, (commentView) => {
       commentView.commentView.find('.selectCommentButton-sort').click((() => {
         // Remove outline and hide goToGraphContainer
-        this.unselectComment(commentView.commentView);
+        this._sortedFilteredView.unselectComment(commentView.commentView);
         // Select comment
-        this._graphView.setSelectedComment(commentView);
+        this._sortedFilteredView.graphView.setSelectedComment(commentView);
         // Swap view to graphView
         this.sortToGraph();
         // Close Sort/Filter menu
@@ -82,24 +76,16 @@ class SortedFilteredController {
     // Modify parameters of a sort function
     $('.sortParameters').click((e) => {
       const sortFunctionDOM = $(e.currentTarget).closest('.sortFunction');
-      const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+      const sortFunctionView = this._sortedFilteredView.allSortFunctionsView[sortFunctionDOM.attr('id')];
 
       if(sortFunctionView.isSelected()) {
         // Parameters opened for this function : close it
-        sortFunctionView.unselect();
+        this._sortedFilteredView.unselectSortFunction(sortFunctionView);
         $('#sortFunctionParameters').addClass('hidden');
       }
       else {
-        // If an other sort function was selected, unselect
-        const previousSelected = _.find(this._graphView.allSortFunctionsView, (sortFunctionView) => {
-          return sortFunctionView.isSelected();
-        });
-        if(previousSelected) {
-          previousSelected.unselect();
-        }
         // Select sort function
-        sortFunctionView.select();
-        sortFunctionView.refreshParameters(this._graphView._barChart);
+        this._sortedFilteredView.selectSortFunction(sortFunctionView);
         if($('#sortFunctionParameters').hasClass('hidden')) {
           // Sort parameters is hidden : show it
           $('#sortFunctionParameters').removeClass('hidden');
@@ -107,8 +93,11 @@ class SortedFilteredController {
       }
     });
 
+    // SortFunctionSlider update
     $('#sortFunctionSlider').mousedown((mousedownEvent) => {
       var currentSliderValue = Math.floor($(mousedownEvent.currentTarget).val());
+
+      // Listen for mouse move, to update slide value
       $(document).mousemove(() => {
         var newSlideValue = Math.floor($(mousedownEvent.currentTarget).val());
         if(newSlideValue != currentSliderValue) {
@@ -118,6 +107,7 @@ class SortedFilteredController {
       });
 
       $(document).mouseup(() => {
+        // Stop listening
         $(document).off('mouseup');
         $(document).off('mousemove');
       });
@@ -141,22 +131,21 @@ class SortedFilteredController {
   }
 
   updateSortFunctionSlider() {
-    const sortFunctionSelected = _.find(this._graphView.allSortFunctionsView, (sortFunctionView) => {
-      return sortFunctionView.isSelected();
-    });
     const currentSliderValue = Math.floor($('#sortFunctionSlider').val());
-    $('output[for="sortFunctionSlider"]').val(currentSliderValue);
-    sortFunctionSelected.sortFunctionModel.relativeDiffMax = (currentSliderValue / 100);
-    var classChange = sortFunctionSelected.sortFunctionModel.classify();
+    this._sortedFilteredView.updateSortFunctionSlider(currentSliderValue);
+
+    this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.relativeDiffMax = (currentSliderValue / 100);
+
+    var classChange = this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classify();
     if(classChange) {
-      sortFunctionSelected.refreshParameters(this._graphView._barChart);
       this.setSortFunctionsWeight();
-      this.showSortContainers();
+      this._sortedFilteredView.refreshParameters();
+      this._sortedFilteredView.showSortContainers();
     }
   }
 
   updateSortFunctionSortDirection(sortFunctionDOM) {
-    const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+    const sortFunctionView = this._sortedFilteredView.allSortFunctionsView[sortFunctionDOM.attr('id')];
 
     if(sortFunctionView.sortFunctionModel.sortDirection == 'desc') {
       // Desc to Asc
@@ -166,12 +155,7 @@ class SortedFilteredController {
       // Asc to !Active
       sortFunctionView.sortFunctionModel.isActive = false;
       sortFunctionView.sortFunctionModel.sortDirection = '';
-
-      if(sortFunctionView.isSelected()) {
-        // Parameters opened for this function : close it
-        sortFunctionView.unselect();
-        $('#sortFunctionParameters').addClass('hidden');
-      }
+      this._sortedFilteredView.unselectSortFunction(sortFunctionView);
     }
     else if(!sortFunctionView.sortFunctionModel.isActive) {
       //!Active to Desc
@@ -181,16 +165,15 @@ class SortedFilteredController {
 
     sortFunctionView.refresh();
     if(sortFunctionView.isSelected()) {
-      // Parameters opened for this function : update it
-      sortFunctionView.refreshParameters(this._graphView._barChart);
+      this._sortedFilteredView.refreshParameters();
     }
     this.setSortFunctionsWeight();
-    this.showSortContainers();
+    this._sortedFilteredView.showSortContainers();
   }
 
   dragAndDropSortFunction(mousedownEvent) {
     const sortFunctionDOM = $(mousedownEvent.currentTarget);
-    const sortFunctionView = this._graphView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+    const sortFunctionView = this._sortedFilteredView.allSortFunctionsView[sortFunctionDOM.attr('id')];
     if(sortFunctionView.sortFunctionModel.isActive) {
       // Create the separator, to visualize the index changes on dragging
       sortFunctionDOM.after('<div id="sortFunctionSeparator" class="border-dashed border-l-2 border-gray-600 ml-1 self-stretched">&nbsp;</div>');
@@ -198,7 +181,7 @@ class SortedFilteredController {
       // Get sort functions positions, to know where to change index
       var positions = [];
       var currentTargetIndex;
-      _.each(this._graphView.allSortFunctionsView, (currentSortFunctionView, index) => {
+      _.each(this._sortedFilteredView.allSortFunctionsView, (currentSortFunctionView, index) => {
         positions.push(currentSortFunctionView.sortFunctionDOM.position().left + (currentSortFunctionView.sortFunctionDOM.width() / 2));
         if(sortFunctionView.sortFunctionModel.id == currentSortFunctionView.sortFunctionModel.id) {
           currentTargetIndex = index;
@@ -261,7 +244,7 @@ class SortedFilteredController {
 
         // Sort change : recalculate weight and sort comments again
         this.setSortFunctionsWeight();
-        this.showSortContainers();
+        this._sortedFilteredView.showSortContainers();
       });
     }
   }
@@ -271,48 +254,12 @@ class SortedFilteredController {
     for(var weight = childs.length - 1 ; weight >= 0 ; weight--) {
       var sortFilterFunctionDOM = childs[weight];
       $('#allSortFunctions').prepend(sortFilterFunctionDOM);
-      const sortFunction = this._graphModel.mainSortFunction.allSortFunctions[$(sortFilterFunctionDOM).attr('id')];
+      const sortFunction = this._sortedFilteredView.graphModel.mainSortFunction.allSortFunctions[$(sortFilterFunctionDOM).attr('id')];
       sortFunction.weight = childs.length - weight;
     }
     // Weights change : sort again
-    this._graphModel.mainSortFunction.classify();
-    this.sortCommentsToContainers();
-  }
-
-  sortCommentsToContainers() {
-    $('.commentContainer').prependTo($('#commentsContainer'));
-    $('.sortContainer').remove();
-
-    for(var i = 0 ; i < this._graphModel.mainSortFunction.classes.length ; i++) {
-      const sortClass = this._graphModel.mainSortFunction.classes[i];
-
-      // Create the flex container
-      const sortContainer = $('<div class="sortContainer flex flex-wrap justify-start" color="' + sortClass.color + '"></div>');
-      $('#commentsContainer').prepend(sortContainer);
-
-      _.each(sortClass.comments, (commentId) => {
-        // Put the comments in the right container
-        sortContainer.prepend(this._graphView.commentsView[commentId].commentView);
-        // And set header color
-        this._graphView.commentsView[commentId].setHeaderColor(sortClass.color);
-      });
-    }
-  }
-
-  showSortContainers() {
-    $('#commentsContainer').addClass('flex flex-col justify-between');
-    $('.sortContainer').each((index, container) => {
-      $(container).addClass('m-2 border-l-3 border-solid rounded');
-      $(container).css('border-color', $(container).attr('color'));
-    });
-  }
-
-  hideSortContainers() {
-    $('#commentsContainer').removeClass(['flex', 'flex-col', 'justify-between']);
-    $('.sortContainer').each((index, container) => {
-      $(container).removeClass(['m-2', 'border-l-3', 'border-solid', 'rounded']);
-      $(container).css('border-color', '');
-    });
+    this._sortedFilteredView.graphModel.mainSortFunction.classify();
+    this._sortedFilteredView.sortCommentsToContainers();
   }
 
   toggleSortMode() {
@@ -332,73 +279,31 @@ class SortedFilteredController {
     // And swap to this Sort/Filter mode, without animation
     animation_manager.animated = false;
 
-    // Hide relations beetween comments
-    $('#relationsContainer').hide();
-    // And graph coordinates
-    $('#graphCoordinates').hide();
-
-    this.showSortContainers();
-
-    _.each(this._graphView.commentsView, (commentView) => {
-      // Remove comment selection, only available in Graph mode
-      if(commentView.selected) {
-        commentView.unselect();
-      }
-      if(commentView.selectedAsParent) {
-        commentView.unselectAsParent();
-      }
-      if(commentView.selectedAsChild) {
-        commentView.unselectAsChild();
-      }
-      // All comments in Sort/Filter mode are visible
-      if(!commentView.visible) {
-        commentView.commentView.show();
-      }
-      // And have the same size
-      if(commentView.isExpanded) {
-        commentView.resize();
-      }
-
-      // Position of comment in this Sort/Filter mode, is not calculated like in Graph mode
-      commentView.commentView.removeClass('absolute');
-      commentView.commentView.css('left', '');
-      commentView.commentView.css('top', '');
-      commentView.commentView.addClass('m-2');
-
+    _.each(this._sortedFilteredView.graphView.commentsView, (commentView) => {
       // Switch selectCommentButtons, making click right behaviour
       commentView.commentView.find('.selectCommentButton-sort').removeClass('hidden');
       commentView.commentView.find('.selectCommentButton-graph').addClass('hidden');
 
       // Over/Out a comment : "select" it
       commentView.commentView.mouseenter((function() {
-        this.selectComment(commentView.commentView);
+        this._sortedFilteredView.selectComment(commentView.commentView);
 
         commentView.commentView.off('mouseleave');
         commentView.commentView.mouseleave((function() {
-          this.unselectComment(commentView.commentView);
+          this._sortedFilteredView.unselectComment(commentView.commentView);
         }).bind(this));
       }).bind(this));
     });
+
+    // Update View
+    this._sortedFilteredView.graphToSort();
   }
 
   sortToGraph() {
-    // Show again relations beetween comments
-    $('#relationsContainer').show();
-    // And graph coordinates
-    $('#graphCoordinates').show();
+    // Update View (before animating again)
+    this._sortedFilteredView.sortToGraph();
 
-    this.hideSortContainers();
-
-    _.each(this._graphView.commentsView, (commentView) => {
-      // Position will be calculated again
-      commentView.commentView.addClass('absolute');
-      commentView.commentView.removeClass('m-2');
-
-      // Hide again comments that should be hidden
-      if(!commentView.commentModel.visible) {
-        commentView.commentView.hide();
-      }
-
+    _.each(this._sortedFilteredView.graphView.commentsView, (commentView) => {
       // Switch selectCommentButtons, making click right behaviour
       commentView.commentView.find('.selectCommentButton-graph').removeClass('hidden');
       commentView.commentView.find('.selectCommentButton-sort').addClass('hidden');
@@ -409,8 +314,8 @@ class SortedFilteredController {
     });
 
     // Force "reset" of selection, to re-build Graph
-    const selectedComment = this._graphView.selectedComment;
-    this._graphView.setSelectedComment(null);
+    const selectedComment = this._sortedFilteredView.graphView.selectedComment;
+    this._sortedFilteredView.graphView.setSelectedComment(null);
     this._graphNavigator.selectComment(selectedComment);
     this._graphNavigator.selectCommentUpdateModel();
 
@@ -419,16 +324,6 @@ class SortedFilteredController {
 
     // We can animate graph again
     animation_manager.animated = true;
-  }
-
-  selectComment(commentView) {
-    commentView.css('outline-color', GOOD_COLOR);
-    commentView.addClass('outline-3 outline-solid');
-  }
-
-  unselectComment(commentView) {
-    commentView.css('outline-color', '');
-    commentView.removeClass(['outline-3', 'outline-solid']);
   }
 
 

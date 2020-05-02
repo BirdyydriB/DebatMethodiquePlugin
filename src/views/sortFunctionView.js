@@ -41,6 +41,27 @@ class SortFunctionView {
     }));
     sortFunctionContainer.append(this._sortFunctionDOM);
 
+    // Set bg-color/text-color for nbChildren, nbChildrenTotal and upVote
+    const selector = ((sortFunctionId) => {
+      switch (sortFunctionId) {
+        case 'sortByUpVote':
+          return '.upVoteContainer>.iconContainer';
+          break;
+        case 'sortByNbChilds':
+          return '.answersContainer>.iconContainer';
+          break;
+        case 'sortByNbChildsTotal':
+          return '.allAnswersContainer>.iconContainer';
+          break;
+        default :
+          return '';
+      }
+    })(this._sortFunctionModel.id);
+    $(selector).each((index, commentIcon) => {
+      this.addClassReminder(commentIcon);
+    });
+    this.showAllClassReminders();
+
     return this;
   }
 
@@ -97,23 +118,22 @@ class SortFunctionView {
     this._sortFunctionDOM.removeClass('selected');
   }
 
-  addClassReminder(commentId, DOMElement) {
-    DOMElement.addClass(this._sortFunctionModel.id);
-    DOMElement.attr('commentId', commentId);
+  addClassReminder(DOMElement) {
+    $(DOMElement).addClass('remind-' + this._sortFunctionModel.id);
   }
 
   hideAllClassReminders() {
-    _.each($('.' + this._sortFunctionModel.id), (DOMElement) => {
+    $('.remind-' + this._sortFunctionModel.id).each((index, DOMElement) => {
       $(DOMElement).css('background-color', '');
       $(DOMElement).css('color', '');
     });
   }
 
   showAllClassReminders() {
-    _.each($('.' + this._sortFunctionModel.id), (DOMElement) => {
-      const commentId = $(DOMElement).attr('commentId');
-      const commentClass = this._sortFunctionModel.commentsClass[commentId];
-      const commentColor = this._sortFunctionModel.classes[commentClass].color;
+    $('.remind-' + this._sortFunctionModel.id).each((index, DOMElement) => {
+      const commentId = $(DOMElement).closest('.commentContainer').attr('id').split('-')[1];
+      const commentClass = this._sortFunctionModel.sortedCommentsScore[this._sortFunctionModel.commentsIndex[commentId]];
+      const commentColor = this._sortFunctionModel.classes[commentClass.classIndex].color;
       $(DOMElement).css('background-color', commentColor);
       $(DOMElement).css('color', colors.getTextColorFromBackgroundColor(commentColor));
     });
