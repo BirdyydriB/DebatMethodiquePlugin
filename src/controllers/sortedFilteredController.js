@@ -139,7 +139,7 @@ class SortedFilteredController {
     var classChange = this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classify();
     if(classChange) {
       this.setSortFunctionsWeight();
-      this._sortedFilteredView.refreshParameters();
+      this._sortedFilteredView.renderParameters();
       this._sortedFilteredView.showSortContainers();
     }
   }
@@ -163,9 +163,9 @@ class SortedFilteredController {
       sortFunctionView.sortFunctionModel.sortDirection = 'desc';
     }
 
-    sortFunctionView.refresh();
+    sortFunctionView.render();
     if(sortFunctionView.isSelected()) {
-      this._sortedFilteredView.refreshParameters();
+      this._sortedFilteredView.renderParameters();
     }
     this.setSortFunctionsWeight();
     this._sortedFilteredView.showSortContainers();

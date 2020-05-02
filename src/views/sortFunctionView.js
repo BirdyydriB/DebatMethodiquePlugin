@@ -65,7 +65,7 @@ class SortFunctionView {
     return this;
   }
 
-  refresh() {
+  render() {
     if(this._sortFunctionModel.isActive) {
       this._sortFunctionDOM.removeClass('bg-gray-400');
       this._sortFunctionDOM.find('.sortParameters').removeClass('hidden');
@@ -95,7 +95,7 @@ class SortFunctionView {
     }
   }
 
-  refreshParameters(barChart) {
+  renderParameters(barChart) {
     $('#sortFunctionSlider').val(this._sortFunctionModel.relativeDiffMax * 100);
     $('output[for="sortFunctionSlider"]').val(Math.floor(this._sortFunctionModel.relativeDiffMax * 100));
 

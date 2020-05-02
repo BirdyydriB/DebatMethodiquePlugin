@@ -134,7 +134,7 @@ class GraphView {
       this.showComment(this.commentsView[comment.id]);
     });
     $(document).on('updateGrig', (event) => {
-      this.refresh();
+      this.render();
     });
 
     return this;
@@ -235,7 +235,7 @@ class GraphView {
     * Update visibles comments positions, looking graphModel.grid
     * @access public
     */
-  refresh() {
+  render() {
     // Reset selectedComment as childs could have been re-ordered differently
     this.setSelectedComment(this._selectedComment);
     var currentPositionOne = 0, currentPositionTwo = 0;

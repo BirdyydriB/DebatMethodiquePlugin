@@ -165,7 +165,7 @@ class RelationView {
     * Re-draw the RelationView
     * @access public
     */
-  refresh() {
+  render() {
     if(($('#relationsContainer').css('display') != 'none') && this._visible) {
       // Draw the path
       var positions = this.getLinkValues();
@@ -226,7 +226,7 @@ class RelationView {
     */
   select(depth) {
     this._selectionDepth = depth;
-    this.refresh();
+    this.render();
   }
 
   /**
@@ -235,7 +235,7 @@ class RelationView {
     */
   unselect() {
     this._selectionDepth = null;
-    this.refresh();
+    this.render();
   }
 
 }

@@ -422,8 +422,8 @@ class GraphNavigator {
     // Rebuild denseGrid
     this.buildDenseGrid();
 
-    // And refresh view
-    this.graphView.refresh();
+    // And render view
+    this.graphView.render();
 
     // Scroll View to selected comment -1, -1
     this.scrollMainContainerToSelected(false).then(() => {

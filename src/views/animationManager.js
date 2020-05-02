@@ -96,10 +96,10 @@ class AnimationManager {
           queue: animationKey,
           progress: (animation, progress, remainingMs) => {
             if(commentView.parentRelationView) {
-              commentView.parentRelationView.refresh();
+              commentView.parentRelationView.render();
             }
             _.each(commentView.childRelationsView, (relationView) => {
-              relationView.refresh();
+              relationView.render();
             });
           }
         })
@@ -117,10 +117,10 @@ class AnimationManager {
       });
 
       if(commentView.parentRelationView) {
-        commentView.parentRelationView.refresh();
+        commentView.parentRelationView.render();
       }
       _.each(commentView.childRelationsView, (relationView) => {
-        relationView.refresh();
+        relationView.render();
       });
     }
   }

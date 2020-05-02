@@ -106,7 +106,7 @@ class SortedFilteredView {
     }
     this._sortFunctionSelected = sortFunctionView;
     sortFunctionView.select();
-    sortFunctionView.refreshParameters(this._barChart);
+    sortFunctionView.renderParameters(this._barChart);
   }
 
   unselectSortFunction(sortFunctionView) {
@@ -117,10 +117,10 @@ class SortedFilteredView {
     }
   }
 
-  refreshParameters() {
-    console.log('refreshParameters', this._sortFunctionSelected);
+  renderParameters() {
+    console.log('renderParameters', this._sortFunctionSelected);
     if(this._sortFunctionSelected) {
-      this._sortFunctionSelected.refreshParameters(this._barChart);
+      this._sortFunctionSelected.renderParameters(this._barChart);
     }
   }
 
