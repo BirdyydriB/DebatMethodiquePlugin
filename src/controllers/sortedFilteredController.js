@@ -107,6 +107,25 @@ class SortedFilteredController {
       }
     });
 
+    $('#sortFunctionSlider').mousedown((mousedownEvent) => {
+      var currentSliderValue = Math.floor($(mousedownEvent.currentTarget).val());
+      $(document).mousemove(() => {
+        var newSlideValue = Math.floor($(mousedownEvent.currentTarget).val());
+        if(newSlideValue != currentSliderValue) {
+          currentSliderValue = newSlideValue;
+          this.updateSortFunctionSlider();
+        }
+      });
+
+      $(document).mouseup(() => {
+        $(document).off('mouseup');
+        $(document).off('mousemove');
+      });
+    });
+    $('#sortFunctionSlider').change(() => {
+      this.updateSortFunctionSlider();
+    });
+
     // Drag and Drop sortFunctions to change theire weight
     $('.sortIconContainer').mousedown((mousedownEvent) => {
       mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortIcon
@@ -119,6 +138,21 @@ class SortedFilteredController {
     });
 
     return this;
+  }
+
+  updateSortFunctionSlider() {
+    const sortFunctionSelected = _.find(this._graphView.allSortFunctionsView, (sortFunctionView) => {
+      return sortFunctionView.isSelected();
+    });
+    const currentSliderValue = Math.floor($('#sortFunctionSlider').val());
+    $('output[for="sortFunctionSlider"]').val(currentSliderValue);
+    sortFunctionSelected.sortFunctionModel.relativeDiffMax = (currentSliderValue / 100);
+    var classChange = sortFunctionSelected.sortFunctionModel.classify();
+    if(classChange) {
+      sortFunctionSelected.refreshParameters(this._graphView._barChart);
+      this.setSortFunctionsWeight();
+      this.showSortContainers();
+    }
   }
 
   updateSortFunctionSortDirection(sortFunctionDOM) {

@@ -75,7 +75,10 @@ class SortFunctionView {
   }
 
   refreshParameters(barChart) {
-    barChart.setDatas(this._sortFunctionModel.commentsClass, this._sortFunctionModel.classes, localize('SORT_FUNCTION_BARCHART_X_LABEL'), this._sortFunctionModel.measurementLabel);
+    $('#sortFunctionSlider').val(this._sortFunctionModel.relativeDiffMax * 100);
+    $('output[for="sortFunctionSlider"]').val(Math.floor(this._sortFunctionModel.relativeDiffMax * 100));
+
+    barChart.setDatas(this._sortFunctionModel.sortedCommentsScore, this._sortFunctionModel.classes, localize('SORT_FUNCTION_BARCHART_X_LABEL'), this._sortFunctionModel.measurementLabel);
     if((this._sortFunctionModel.sortDirection == 'asc')) {
       barChart.changeSort();
     }

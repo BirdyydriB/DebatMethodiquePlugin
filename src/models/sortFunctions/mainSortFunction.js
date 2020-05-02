@@ -54,7 +54,8 @@ class MainSortFunction extends sort_function.SortFunction {
     };
 
     _.each(this._allSortFunctions, (sortFunction) => {
-      sortFunction.classify(this._graphModel.commentsModel);
+      sortFunction.init(this._graphModel.commentsModel)
+        .classify();
     });
   }
 
@@ -67,26 +68,34 @@ class MainSortFunction extends sort_function.SortFunction {
 
     var commentsByClass = [];
     if(sortedActiveFunctions.length > 0) {
+      // Init comments classification with first sort function
       commentsByClass = _.map(sortedActiveFunctions[0].classes, (commentsClass) => {
         return commentsClass.comments;
       });
       if(sortedActiveFunctions[0].sortDirection == 'asc') {
         commentsByClass = commentsByClass.reverse();
       }
-      _.each(sortedActiveFunctions[0].commentsClass, (commentClass, index) => {
-        this._commentsClass[index] = _.clone(commentClass);
+      _.each(sortedActiveFunctions[0].sortedCommentsScore, (commentScore, index) => {
+        // Init _sortedCommentsScore and _commentsIndex
+        this._sortedCommentsScore[index] = _.clone(commentScore);
+        this._commentsIndex[commentScore.commentId] = index;
       });
 
+      // Then (recursivly) classify comments of a same class, with next sort function
       for(var i = 1 ; i < sortedActiveFunctions.length ; i++) {
         var currentFunctionClasses = [];
         // Foreach classes of comments
         for(var j = 0 ; j < commentsByClass.length ; j++) {
           // GroupBy by current sort function classes
           currentFunctionClasses.push(_.toArray(_.groupBy(commentsByClass[j], (commentId) => {
+            const commentIndex = sortedActiveFunctions[i].commentsIndex[commentId];
             const commentScore = (sortedActiveFunctions[i].sortDirection == 'asc') ?
-              (sortedActiveFunctions[i].classes.length - sortedActiveFunctions[i].commentsClass[commentId].classIndex) :
-              sortedActiveFunctions[i].commentsClass[commentId].classIndex;
-            this._commentsClass[commentId].commentScore += '>' + commentScore;
+              (sortedActiveFunctions[i].classes.length - sortedActiveFunctions[i].sortedCommentsScore[commentIndex].classIndex) :
+              sortedActiveFunctions[i].sortedCommentsScore[commentIndex].classIndex;
+
+            this._sortedCommentsScore[commentIndex].commentScore += '>' + commentScore;
+            this._commentsIndex[commentId] = commentIndex;
+
             return commentScore;
           })));
         }
@@ -99,7 +108,7 @@ class MainSortFunction extends sort_function.SortFunction {
       commentsByClass = [_.keys(this._graphModel.commentsModel)];
     }
 
-    // Save results into classes
+    // Save classifying results into classes
     this._classes = [];
     for (var i = 0; i < commentsByClass.length; i++) {
       const classColor = (commentsByClass.length == 1) ?
@@ -108,16 +117,16 @@ class MainSortFunction extends sort_function.SortFunction {
 
       this._classes[i] = {
         color: classColor,
-        comments: _.shuffle(commentsByClass[i]) // Randomify comments is a same class
+        comments: _.shuffle(commentsByClass[i]) // Randomify comments of a same class
       };
       _.each(commentsByClass[i], (commentId) => {
-        this._commentsClass[commentId].classIndex = i;
+        this._sortedCommentsScore[this._commentsIndex[commentId]].classIndex = i;
       });
     }
 
     // Sort all comments in graph
     this._graphModel.buildGrid((commentId) => {
-      return -this._commentsClass[commentId].classIndex;
+      return -this._sortedCommentsScore[this._commentsIndex[commentId]].classIndex;
     });
   }
 

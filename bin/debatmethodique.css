@@ -14272,6 +14272,20 @@ video {
   border-color: #e53e3e;
 }
 
+.slider-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+          appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background-color: #4299e1;
+  cursor: pointer;
+}
+
+.slider-thumb::-webkit-slider-thumb:hover {
+  background-color: #2b6cb0;
+}
+
 @media (min-width: 640px) {
   .sm\:sr-only {
     position: absolute;

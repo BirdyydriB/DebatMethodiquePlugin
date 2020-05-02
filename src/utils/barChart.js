@@ -134,14 +134,7 @@ class BarChart {
     this._xLabel = xLabel;
     this._yLabel = yLabel;
     this._colors = _.map(colors, 'color');
-
-    this._datas = [];
-    _.each(datas, (data, commentId) => {
-      data.commentId = commentId;
-      this._datas.push(data);
-    });
-    this._datas = _.sortBy(this._datas, 'commentScore');
-
+    this._datas = _.clone(datas);
     this._maxScore = this._datas[this._datas.length - 1].commentScore;
 
     this._classSeparators = [-1];
@@ -191,12 +184,21 @@ class BarChart {
       .selectAll("rect")
       .data(this._datas)
       .join("rect")
-      .attr("class", d => ((d.classIndex == -1) ? "separator": "bar"))
+      .attr("class", d => {
+        if(d.classIndex == -1) {
+          return "separator";
+        }
+        if(this._colors.length == 1) {
+          // Default color bar if there is no classes
+          return "bar fill-current text-gray-700";
+        }
+        return "bar";
+      })
       .attr("x", (d, index) => this._xScale(index))
       .attr("y", d => this._yScale(d.commentScore))
       .attr("height", d => this._yScale(0) - this._yScale(d.commentScore + 0.1))
       .attr("width", d => (d.classIndex == -1) ? 0 : this._xScale.bandwidth())
-      .attr("fill", d => (d.classIndex == -1) ? "black": this._colors[d.classIndex]);
+      .attr("fill", d => (d.classIndex == -1) ? "": this._colors[d.classIndex]);
   }
 
 }

@@ -18,9 +18,20 @@ const colors = require("../../utils/colors");
  */
 /*abstract*/ class SortFunction {
   // --- Vars and accessors
-  _commentsClass; // Object<int> | Key : the comment Id. The class of this comment
-  get commentsClass() {
-    return this._commentsClass;
+  _id; // String | Id of the sort function
+  get id() {
+    return this._id;
+  }
+  _sortedCommentsScore; /* Array<{commentScore | the comment score given by getValueToSort()
+                                  commentId | the Id of the comment
+                                  classIndex | the comment class index in _classes
+                          }> | The sorted comments, by score */
+  get sortedCommentsScore() {
+    return this._sortedCommentsScore;
+  }
+  _commentsIndex; // Object<int> | Key : the comment Id. The index of this comment in this._sortedCommentsScore
+  get commentsIndex() {
+    return this._commentsIndex;
   }
   _classes; /* Array<{color: The color of this class (btw green and red),
                       comments: Array<commentId> | The comments in this class
@@ -36,10 +47,6 @@ const colors = require("../../utils/colors");
   get measurementLabel() {
     return this._measurementLabel;
   }
-  _id; // String | Id of the sort function
-  get id() {
-    return this._id;
-  }
   _classifyMethod;
   get classifyMethod() {
     return this._classifyMethod;
@@ -47,6 +54,9 @@ const colors = require("../../utils/colors");
   _relativeDiffMax; // Number | Parameter of "Méthode des grandes différences relatives" for classifying
   get relativeDiffMax() {
     return this._relativeDiffMax;
+  }
+  set relativeDiffMax(val) {
+    this._relativeDiffMax = val;
   }
   _chunkSize;
   get chunkSize() {
@@ -86,13 +96,35 @@ const colors = require("../../utils/colors");
       throw new TypeError('Abstract class "SortFunction" cannot be instantiated directly');
     }
 
-    this._commentsClass = {};
+    this._sortedCommentsScore = [];
+    this._commentsIndex = {};
     this._isActive = false;
     this._sortDirection = '';
     this._weight = 0;
     this._classifyMethod = 'largeRelativeDifferenceMethod';
     return this;
   }
+
+  init(comments) {
+    _.each(comments, (comment) => {
+      const commentScore = this.getValueToSort(comment);
+      this._sortedCommentsScore.push({
+        commentScore: commentScore,
+        commentId: comment.id
+      });
+    });
+
+    this._sortedCommentsScore = _.sortBy(this._sortedCommentsScore, (comment) => {
+      return comment.commentScore;
+    });
+
+    _.each(this._sortedCommentsScore, (commentScore, index) => {
+      this._commentsIndex[commentScore.commentId] = index;
+    });
+
+    return this;
+  }
+
   /**
    * Function to extend, to sort comments
    * @access private
@@ -102,51 +134,41 @@ const colors = require("../../utils/colors");
   getValueToSort(comment) {
     return 0;
   }
+
   /**
    * Classify all comments in distinct classes
    * @access private
-   * @param {Object.<CommentModel>} comments - Key : the comment Id. All the comments
-   * @param {Number} relativeDiffMax - Parameter of "Méthode des grandes différences relatives" for classifying
    */
-  classify(comments, classifyArgument) {
-    // Sort datas
-    const sortedComments = _.sortBy(comments, (comment) => {
-      const commentScore = this.getValueToSort(comment);
-      this._commentsClass[comment.id] = {
-        classIndex: null,
-        commentScore: commentScore
-      };
-      return commentScore;
-    });
-
+  classify() {
     if(this._classifyMethod == 'largeRelativeDifferenceMethod') {
       // Classify using "Méthode des grandes différences relatives"
-      this.largeRelativeDifferenceMethod(sortedComments, this._relativeDiffMax);
+      var classChange = this.largeRelativeDifferenceMethod();
     }
     else if(this._classifyMethod == 'sameSizeClasses') {
-      this.sameSizeClasses(sortedComments, this._chunkSize);
+      this.sameSizeClasses();
     }
 
-    console.log(this._label, this._commentsClass, this._classes);
-
-    for (var i = 0; i < this._classes.length; i++) {
-      if(this._classes.length == 1) {
-        // Only one class, give a color does not make any sens
-        this._classes[0].color = '';
+    if(classChange) {
+      for (var i = 0; i < this._classes.length; i++) {
+        if(this._classes.length == 1) {
+          // Only one class, give a color does not make any sens
+          this._classes[0].color = '';
+        }
+        else {
+          // Calculate colors from a gradient : red to green (threw yellow)
+          this._classes[i].color = colors.getGradientColor(BAD_COLOR, MIDDLE_COLOR, GOOD_COLOR, (i / (this.classes.length - 1)));
+        }
+        // Randomify comments is a same class
+        this._classes[i].comments = _.shuffle(this._classes[i].comments);
       }
-      else {
-        // Calculate colors from a gradient : red to green (threw yellow)
-        this._classes[i].color = colors.getGradientColor(BAD_COLOR, MIDDLE_COLOR, GOOD_COLOR, (i / (this.classes.length - 1)));
-      }
-      // Randomify comments is a same class
-      this._classes[i].comments = _.shuffle(this._classes[i].comments);
     }
+
+    return classChange;
   }
 
-  sameSizeClasses(sortedComments, chunkSize) {
+  sameSizeClasses() {
     this._classes = [];
-    this._commentsClass = {};
-    const chunkedComments = _.chunk(sortedComments, chunkSize);
+    const chunkedComments = _.chunk(this._sortedCommentsScore, this._chunkSize);
 
     for (var currentClassIndex = 0; currentClassIndex < chunkedComments.length; currentClassIndex++) {
       this._classes[currentClassIndex] = {
@@ -154,30 +176,32 @@ const colors = require("../../utils/colors");
         comments: []
       };
       _.each(chunkedComments[currentClassIndex], (comment) => {
-        this._classes[currentClassIndex].comments.push(comment.id);
-        this._commentsClass[comment.id]['classIndex'] = currentClassIndex;
+        this._classes[currentClassIndex].comments.push(comment.commentId);
+        comment['classIndex'] = currentClassIndex;
       });
     }
   }
 
-  largeRelativeDifferenceMethod(sortedComments, relativeDiffMax) {
+  largeRelativeDifferenceMethod() {
+    var classChange = false;
     // Normalize datas btw 0.1 & 1.1
-    const maxVal = this._commentsClass[sortedComments[sortedComments.length - 1].id].commentScore;
-    const normalized = _.map(sortedComments, (comment) => {
-      return (this._commentsClass[comment.id].commentScore / maxVal) + 0.1;
+    const maxVal = this._sortedCommentsScore[this._sortedCommentsScore.length - 1].commentScore;
+    const normalized = _.map(this._sortedCommentsScore, (comment) => {
+      return (comment.commentScore / maxVal) + 0.1;
     });
 
     var currentClassIndex = 0;
     this._classes = [{
       color: null,
-      comments: [sortedComments[0].id]
+      comments: [this._sortedCommentsScore[0].commentId]
     }];
-    this._commentsClass[sortedComments[0].id]['classIndex'] = 0;
+    classChange = classChange || (this._sortedCommentsScore[0]['classIndex'] != 0);
+    this._sortedCommentsScore[0]['classIndex'] = 0;
 
-    for (var i = 1; i < sortedComments.length; i++) {
+    for (var i = 1; i < normalized.length; i++) {
       const relativeDiff = ((normalized[i] - normalized[i - 1]) / normalized[i - 1]);
 
-      if (relativeDiff > relativeDiffMax) {
+      if (relativeDiff > this._relativeDiffMax) {
         // Init new class
         currentClassIndex++;
         this._classes[currentClassIndex] = {
@@ -186,9 +210,12 @@ const colors = require("../../utils/colors");
         };
       }
 
-      this._classes[currentClassIndex].comments.push(sortedComments[i].id);
-      this._commentsClass[sortedComments[i].id]['classIndex'] = currentClassIndex;
+      this._classes[currentClassIndex].comments.push(this._sortedCommentsScore[i].commentId);
+      classChange = classChange || (this._sortedCommentsScore[i]['classIndex'] != currentClassIndex);
+      this._sortedCommentsScore[i]['classIndex'] = currentClassIndex;
     }
+
+    return classChange;
   }
 
 }

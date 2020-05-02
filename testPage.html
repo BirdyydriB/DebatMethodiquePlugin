@@ -5027,10 +5027,6 @@ Un copain enseignant est persuadé que d&#8217;ici 5 ans, l&#8217;Education Nati
                             </div>
                                             </div>
 
-                    <script type="application/javascript">
-                        initSlider($("#dossier-container"), 0);
-                    </script>
-
                 </aside>
 
 
@@ -5114,11 +5110,6 @@ Un copain enseignant est persuadé que d&#8217;ici 5 ans, l&#8217;Education Nati
                             </div>
 
                     </div>
-
-                    <script type="application/javascript">
-                        initSlider($("#same-category-container"), 0);
-                    </script>
-
                 </aside>
 
 
@@ -5433,188 +5424,7 @@ Un copain enseignant est persuadé que d&#8217;ici 5 ans, l&#8217;Education Nati
 
     </div>
 
-</div>
-
-
-
-        <script type="application/javascript">
-
-            // Faster than ready (osef IE8)
-            // Zoom Management
-            if(Utils.readCookie("zoom")) {
-                $('.main .article').addClass("zoom");
-            }
-
-            $(document).ready(function() {
-
-
-                // Update margin for related-more
-                function moveToRelatedMore() {
-
-                    var relatedMoreSelector = $('.related-more');
-
-                    // Small design : @phone && @phone-lg
-                    if($(window).width() <= 767) {
-                        if(relatedMoreSelector.length) {
-                            relatedMoreSelector.css('margin-top', '');
-                        }
-                        return;
-                    }
-
-
-                    var shareBarSelector = $('.share-bar');
-                    var sidePanelSelector = $('.side_panel');
-                    if (relatedMoreSelector.length && shareBarSelector.length && sidePanelSelector.length) {
-
-                        var shareBarOffset = shareBarSelector.offset().top;
-
-                        var sidebarHeight = sidePanelSelector.outerHeight(true);
-                        var sidebarOffset = sidePanelSelector.offset().top;
-
-                        var shareBarHeightTopPosition = shareBarOffset - sidebarOffset;
-                        var sidebarWithoutRelatedMore = sidebarHeight - relatedMoreSelector.outerHeight(true);
-
-                        if (shareBarHeightTopPosition > sidebarWithoutRelatedMore) {
-
-                            var newTopMarginForRelatedMore = shareBarHeightTopPosition - sidebarWithoutRelatedMore;
-                            relatedMoreSelector.css('margin-top', newTopMarginForRelatedMore+'px');
-
-                        }
-
-                    }
-                }
-
-                // Related Align to bottom of the article
-                moveToRelatedMore();
-                setTimeout(moveToRelatedMore(), 1000);
-                $( window ).resize(function() {
-                    moveToRelatedMore();
-                });
-
-
-
-                // ZOOM action
-                $('.actions .size').click(function(event) {
-                    event.stopPropagation();
-                    $('.main .article').toggleClass("zoom");
-
-                    // Cookie storage
-                    if($('.main .article').hasClass('zoom')) {
-                        Utils.createCookie("zoom","large",365);
-                    } else {
-                        Utils.eraseCookie("zoom");
-                    }
-                });
-
-
-                // GO TO COMMENT action
-                $('.actions .comment').click(function(event) {
-                    event.stopPropagation();
-                    // show more if needed
-                    $('.comment-show-more').click();
-
-                    $('html, body').animate({
-                        scrollTop: $(".comments").offset().top
-                    }, 1000);
-                });
-
-                                $('.actions .action.recommend').click(function(event) {
-                    var myself = $(this);
-                    $.ajax({
-                        url: "https://www.les-crises.fr/wp-admin/admin-ajax.php?action=lclike_action_like_post&post_id=232308&nonce=983046c83c",
-                        dataType: 'json'
-                    }).done(function(data) {
-
-                        if(data.OK) {
-
-                            $('.actions .action.recommend').find('.nb_likes').html(data.nb_likes);
-
-                        } else {
-
-                            alert('Erreur : ' + data.error);
-
-                        }
-
-                    }).fail(function() {
-                        alert('Une erreur est survenue - veuillez nous excuser');
-                    })
-                });
-
-                // Images
-                $('.main .article .entry-content img').click(function(event) {
-
-                    event.preventDefault();
-
-                    var src = $(this).attr('src');
-
-                    // check parent link has bigger image
-                    var parentLink = $(this).parent('a');
-                    if(parentLink.length) {
-
-                        var linkSrc = parentLink.attr('href');
-
-                        // warning about #
-                        var ext = linkSrc.split('.').pop().toLowerCase();
-                        var allowedImage = ["jpg","png","jpeg"];
-                        if(allowedImage.indexOf(ext) > -1) {
-                            src = linkSrc;
-                        }
-                    }
-
-                    $('#image_modal .modal-content').attr('src',src);
-                    $('#image_modal').show();
-
-                });
-
-                $('#image_modal, #image_modal .close').click(function(event) {
-                    event.preventDefault();
-                    $('#image_modal').hide();
-                });
-
-
-                // Image of the main article Loading, anchor could move the anchor position
-                $('.main .article .entry-content img').on('load', function() {
-                    fixAnchorPosition();
-                });
-
-            });
-
-            // ANCHOR MANAGEMENT - Due to image loading with responsive, theire height are not privisble
-            var global_disableAnchor;
-            var global_pageTime = Date.now();
-
-            // Customer Moving action (Firefox == DomMouseScroll)
-            $(window).bind('mousewheel DOMMouseScroll touchstart', function(event){
-                global_disableAnchor = true;
-            });
-
-            // Fix #Anchor bug due to loading image with unknown size
-            $(window).on('load', function () {
-                fixAnchorPosition();
-            });
-
-            // Go to Anchor position
-            function fixAnchorPosition() {
-                // Customer have moved, so stay where he want to be
-                if(global_disableAnchor) {
-                    return;
-                }
-                // Check Valid Hanchor
-                if (!window.location.hash) {
-                    return;
-                }
-                if(window.location.hash.substr(0,1) !== "#") {
-                    return;
-                }
-                // After 5s disable it, customer will decide by himself
-                var deltaMilli = Date.now() - global_pageTime;
-                if(deltaMilli > 5000) {
-                    global_disableAnchor = true;
-                    return;
-                }
-                window.location.href = window.location.hash;
-            }
-        </script>
+</div>        
         <div class="clear"></div>
 
                 <div id="overlay_mobile"></div>

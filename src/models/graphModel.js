@@ -130,7 +130,6 @@ class GraphModel {
     * @access private
     */
   buildGrid(sortFunction) {
-    console.log('buildGrid');
     // Reset the grid
     this.grid = new Array2D();
     // Sort rootComments

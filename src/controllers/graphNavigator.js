@@ -99,7 +99,6 @@ class GraphNavigator {
     * @access public
     */
   buildDenseGrid() {
-    console.log('buildDenseGrid updateGrig');
     this.denseGrid = new Array2D();
 
     this.graphModel.grid.eachRow((row, rowIndex) => {
@@ -119,8 +118,6 @@ class GraphNavigator {
       // Reverse denseGrid for VERTICAL ORIENTATION, to make every functions works well regardless of the orientation
       this.denseGrid.reverse();
     }
-
-    console.log('denseGrid done', this.denseGrid);
   }
 
   /**

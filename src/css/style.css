@@ -57,4 +57,10 @@
 .sortFunction.selected {
   @apply border-red-600; }
 
+.slider-thumb::-webkit-slider-thumb {
+  @apply appearance-none w-4 h-4 rounded-full bg-blue-500 cursor-pointer; }
+
+.slider-thumb::-webkit-slider-thumb:hover {
+  @apply bg-blue-700; }
+
 /*# sourceMappingURL=style.css.map */
