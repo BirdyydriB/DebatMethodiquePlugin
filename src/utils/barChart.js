@@ -328,22 +328,7 @@ class BarChart {
       .attr("y", d => this._yScale(d.commentScore))
       .attr("height", d => this._yScale(0) - this._yScale(d.commentScore + 0.1))
       .attr("width", d => (d.classIndex == -1) ? 0 : this._xScale.bandwidth())
-      .attr("fill", (d, i) => {
-        if(d.classIndex == -1) {
-          // "fake" bars (classSeparators)
-          return "";
-        }
-        if((i < this._minimumFilterIndex) || (i >= this._maximumFilterIndex)) {
-          // Filtered bars
-          return "url(#filteredPattern)";
-        }
-        if(this._colors[d.classIndex] == '') {
-          // Default none color
-          return "#4a5568";
-        }
-        // Set right color
-        return this._colors[d.classIndex];
-      });
+      .attr("fill", fillColor);
   }
 
 
@@ -422,6 +407,23 @@ class BarChart {
     });
   }
 
+  fillColor(d, i) {
+    if(d.classIndex == -1) {
+      // "fake" bars (classSeparators)
+      return "";
+    }
+    if((i < this._minimumFilterIndex) || (i >= this._maximumFilterIndex)) {
+      // Filtered bars
+      return "url(#filteredPattern)";
+    }
+    if(this._colors[d.classIndex] == '') {
+      // Default none color
+      return "#4a5568";
+    }
+    // Right color
+    return this._colors[d.classIndex];
+  }
+
   updateCommentsColors(newColors) {
     this._colors = _.map(newColors, 'color');
 
@@ -429,22 +431,7 @@ class BarChart {
       .selectAll("rect")
       .data(this._datas)
       .join("rect")
-      .attr("fill", (d, i) => {
-        if(d.classIndex == -1) {
-          // "fake" bars (classSeparators)
-          return "";
-        }
-        if((i < this._minimumFilterIndex) || (i >= this._maximumFilterIndex)) {
-          // Filtered bars
-          return "url(#filteredPattern)";
-        }
-        if(this._colors[d.classIndex] == '') {
-          // Default none color
-          return "#4a5568";
-        }
-        // Set right color
-        return this._colors[d.classIndex];
-      });
+      .attr("fill", fillColor);
   }
 
 
