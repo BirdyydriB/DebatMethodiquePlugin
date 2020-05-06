@@ -73,8 +73,12 @@ const colors = require("../../utils/colors");
   get sortDirection() {
     return this._sortDirection;
   }
-  set sortDirection(val) {
-    return this._sortDirection = val;
+  setSortDirection(val) {
+    const rslt = (this._sortDirection = val);
+    if(val != '') {
+      this.updateClassesColors();
+    }
+    return rslt;
   }
   _weight; // Number | Weight of this sort function, compared to other sort functions, in mainSortFunction calculation.
   get weight() {
@@ -82,6 +86,20 @@ const colors = require("../../utils/colors");
   }
   set weight(val) {
     return this._weight = val;
+  }
+  _minimumFilter; // Number | Each data < to this should be filtered
+  get minimumFilter() {
+    return this._minimumFilter;
+  }
+  set minimumFilter(val) {
+    return this._minimumFilter = val;
+  }
+  _maximumFilter; // Number | Each data > to this should be filtered
+  get maximumFilter() {
+    return this._maximumFilter;
+  }
+  set maximumFilter(val) {
+    return this._maximumFilter = val;
   }
 
   // --- Functions
@@ -122,6 +140,9 @@ const colors = require("../../utils/colors");
       this._commentsIndex[commentScore.commentId] = index;
     });
 
+    this._minimumFilter = -0.1;
+    this._maximumFilter = this._sortedCommentsScore[this._sortedCommentsScore.length - 1].commentScore + 0.1;
+
     return this;
   }
 
@@ -148,20 +169,13 @@ const colors = require("../../utils/colors");
       this.sameSizeClasses();
     }
 
-    for (var i = 0; i < this._classes.length; i++) {
-      if(this._classes.length == 1) {
-        // Only one class, give a color does not make any sens
-        this._classes[0].color = '';
-      }
-      else {
-        // Calculate colors from a gradient : red to green (threw yellow)
-        this._classes[i].color = colors.getGradientColor(BAD_COLOR, MIDDLE_COLOR, GOOD_COLOR, (i / (this.classes.length - 1)));
-      }
+    this.updateClassesColors();
 
-      if(classChange) {
-        // Randomify comments is a same class
-        this._classes[i].comments = _.shuffle(this._classes[i].comments);
-      }
+    if(classChange) {
+      // Randomify comments of same classes
+      _.each(this._classes, (commentsClass) => {
+        commentsClass.comments = _.shuffle(commentsClass.comments);
+      });
     }
 
     return classChange;
@@ -217,6 +231,36 @@ const colors = require("../../utils/colors");
     }
 
     return classChange;
+  }
+
+  updateClassesColors() {
+    this._minimumFilterIndex = Math.max(0, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._minimumFilter}, 'commentScore'));
+    const minClass = this._sortedCommentsScore[this._minimumFilterIndex].classIndex;
+
+    this._maximumFilterIndex = Math.min(this._sortedCommentsScore.length, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._maximumFilter}, 'commentScore'));
+    const maxClass = this._sortedCommentsScore[this._maximumFilterIndex - 1].classIndex;
+
+    for (var i = 0 ; i < this._classes.length ; i++) {
+      if((this._classes.length == 1) || (minClass == maxClass) || (i < minClass) || (i > maxClass)) {
+        // Only one class, or all of this class comments filtered : give a color does not make any sens
+        this._classes[i].color = '';
+      }
+      else {
+        // Calculate colors from a gradient : red to green (threw yellow)
+        var firstColor, lastColor;
+        if(this._sortDirection == 'asc') {
+          firstColor = BAD_COLOR;
+          lastColor = GOOD_COLOR;
+        }
+        else {
+          firstColor = GOOD_COLOR;
+          lastColor = BAD_COLOR;
+        }
+
+        this._classes[i].color = colors.getGradientColor(firstColor, MIDDLE_COLOR, lastColor, ((maxClass - i) / (maxClass - minClass)));
+      }
+    }
+
   }
 
 }

@@ -116,6 +116,18 @@ class SortedFilteredController {
       this.updateSortFunctionSlider();
     });
 
+    // Update on a MIN / MAX filter
+    $('#sortFunctionDistributionBarChart').on('minimumFilterChange', (event) => {
+      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.minimumFilter = event.minimumFilter;
+      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.updateClassesColors();
+      this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
+    });
+    $('#sortFunctionDistributionBarChart').on('maximumFilterChange', (event) => {
+      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.maximumFilter = event.maximumFilter;
+      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.updateClassesColors();
+      this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
+    });
+
     // Drag and Drop sortFunctions to change theire weight
     $('.sortIconContainer').mousedown((mousedownEvent) => {
       mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortIcon
@@ -149,18 +161,18 @@ class SortedFilteredController {
 
     if(sortFunctionView.sortFunctionModel.sortDirection == 'desc') {
       // Desc to Asc
-      sortFunctionView.sortFunctionModel.sortDirection = 'asc';
+      sortFunctionView.sortFunctionModel.setSortDirection('asc');
     }
     else if(sortFunctionView.sortFunctionModel.sortDirection == 'asc') {
       // Asc to !Active
       sortFunctionView.sortFunctionModel.isActive = false;
-      sortFunctionView.sortFunctionModel.sortDirection = '';
+      sortFunctionView.sortFunctionModel.setSortDirection('');
       this._sortedFilteredView.unselectSortFunction(sortFunctionView);
     }
     else if(!sortFunctionView.sortFunctionModel.isActive) {
       //!Active to Desc
       sortFunctionView.sortFunctionModel.isActive = true;
-      sortFunctionView.sortFunctionModel.sortDirection = 'desc';
+      sortFunctionView.sortFunctionModel.setSortDirection('desc');
     }
 
     sortFunctionView.render();

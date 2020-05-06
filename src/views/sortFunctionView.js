@@ -96,13 +96,11 @@ class SortFunctionView {
   }
 
   renderParameters(barChart) {
+    // Slider for relativeDiffMax
     $('#sortFunctionSlider').val(this._sortFunctionModel.relativeDiffMax * 100);
     $('output[for="sortFunctionSlider"]').val(Math.floor(this._sortFunctionModel.relativeDiffMax * 100));
-
-    barChart.setDatas(this._sortFunctionModel.sortedCommentsScore, this._sortFunctionModel.classes, localize('SORT_FUNCTION_BARCHART_X_LABEL'), this._sortFunctionModel.measurementLabel);
-    if((this._sortFunctionModel.sortDirection == 'asc')) {
-      barChart.changeSort();
-    }
+    // Bar chart for comments repartition
+    barChart.setDatas(this._sortFunctionModel);
     barChart.render();
   }
 
