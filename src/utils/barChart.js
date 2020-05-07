@@ -139,7 +139,7 @@ class BarChart {
         .call(d3.axisRight(this._yScale)
           .tickSizeOuter(0)
           .tickSizeInner(0)
-          .tickFormat((d, i) => (i == 0 ? "MIN" : "MAX"))
+          .tickFormat((d, i) => (i == 0 ? localize("SORT_FUNCTION_BARCHART_FILTER_MIN") : localize("SORT_FUNCTION_BARCHART_FILTER_MAX")))
           .tickValues([-0.1, 0.1])
         )
       );
@@ -235,9 +235,8 @@ class BarChart {
           .attr("y", i * 25 + 12)
           .attr("text-anchor", "left")
           .style("alignment-baseline", "middle")
-          .text((d == 1) ? "Filtré par cette fonction" : "Filtré par une autre fonction");
+          .text((d == 1) ? localize("SORT_FUNCTION_BARCHART_LEGEND_THIS") : localize("SORT_FUNCTION_BARCHART_LEGEND_OTHER"));
       });
-
 
     return this;
   }
@@ -258,7 +257,7 @@ class BarChart {
     */
   setDatas(sortFunctionModel) {
     this._sortFunction = sortFunctionModel;
-    this._xLabel = localize('SORT_FUNCTION_BARCHART_X_LABEL');
+    this._xLabel = localize("SORT_FUNCTION_BARCHART_X_LABEL");
     this._yLabel = sortFunctionModel.measurementLabel;
     this._colors = _.map(sortFunctionModel.classes, 'color');
     this._datas = _.clone(sortFunctionModel.sortedCommentsScore);
@@ -331,7 +330,7 @@ class BarChart {
       .call(d3.axisRight(this._yScale)
         .tickSizeOuter(0)
         .tickSizeInner(0)
-        .tickFormat((d, i) => (i == 0 ? "MIN" : "MAX"))
+        .tickFormat((d, i) => (i == 0 ? localize("SORT_FUNCTION_BARCHART_FILTER_MIN") : localize("SORT_FUNCTION_BARCHART_FILTER_MAX")))
         .tickValues([this._minimumFilter, this._maximumFilter])
       );
     // Moove again MIN/MAX cursors into it's .tick

@@ -6,6 +6,10 @@ module.exports = {
 
   SORT_FILTER_BUTTON_LABEL: "Sort/Filter",
   SORT_FUNCTION_BARCHART_X_LABEL: "Relevance",
+  SORT_FUNCTION_BARCHART_LEGEND_THIS: "Filtered by this function",
+  SORT_FUNCTION_BARCHART_LEGEND_OTHER: "Filtered by an other function",
+  SORT_FUNCTION_BARCHART_FILTER_MAX: "MAX",
+  SORT_FUNCTION_BARCHART_FILTER_MIN: "MIN",
   SORT_FUNCTION_ASC_LABEL: "in ascending order",
   SORT_FUNCTION_DESC_LABEL: "in descending order",
   SORT_FUNCTION_UPVOTE_LABEL: "vote",
