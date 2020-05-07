@@ -5,12 +5,15 @@
 - if(!sort_isActive) sort_class += ' bg-gray-400';
 
 div(id=sort_id class=sort_class + ' sortFunction mx-1 py-1 px-4 rounded-full flex overflow-hidden select-none border-3 border-solid')
+  div.self-stretch.flex.items-center.sortIconNone.px-1
+    iconify-icon(data-height='16' class=(sort_isActive ? 'hidden ' : '') + 'sortIconIsNotActive' data-icon='ls:checkboxempty')
+    iconify-icon(data-height='16' class=(!sort_isActive ? 'hidden ' : '') + 'sortIconIsActive' data-icon='ls:checkbox')
+  
   div(class='px-1') #{sort_name}
     
-  div(class='sortIconContainer flex items-center cursor-pointer px-1')
-    iconify-icon(data-height='20' class=((!sortDesc) ? 'hidden ' : '') + 'sortIconDown' data-icon='typcn:arrow-sorted-down')
-    iconify-icon(data-height='20' class=((!sortAsc) ? 'hidden ' : '') + 'sortIconUp' data-icon='typcn:arrow-sorted-up')
-    iconify-icon(data-height='20' class=((sort_isActive) ? 'hidden ' : '') + 'sortIconNone' data-icon='typcn:arrow-unsorted')
+  div.sortIconContainer.flex.items-center.cursor-pointer.px-1
+    iconify-icon(data-height='20' class=(!sortDesc ? 'hidden ' : '') + 'sortIconDown' data-icon='typcn:arrow-sorted-down')
+    iconify-icon(data-height='20' class=(!sortAsc ? 'hidden ' : '') + 'sortIconUp' data-icon='typcn:arrow-sorted-up')
   
   div(class=((!sort_isActive) ? 'hidden ' : '') + 'sortParameters flex items-center cursor-pointer px-1')
     iconify-icon(data-height='20' data-icon='bx:bxs-cog')

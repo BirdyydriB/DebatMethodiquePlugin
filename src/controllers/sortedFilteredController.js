@@ -67,10 +67,37 @@ class SortedFilteredController {
       }).bind(this));
     });
 
-    // Click on a sort direction icon : alternate from (desc => asc => !active => desc...)
+    // Activate or desactivate a sortFunction
+    $('.sortIconNone').click((e) => {
+      const sortFunctionDOM = $(e.currentTarget).closest('.sortFunction');
+      const sortFunctionView = this._sortedFilteredView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+
+      sortFunctionView.sortFunctionModel.isActive = $(e.currentTarget).find('.sortIconIsNotActive').is(':visible');
+      if((!sortFunctionView.sortFunctionModel.isActive) && sortFunctionView.isSelected()) {
+        this._sortedFilteredView.unselectSortFunction(sortFunctionView);
+      }
+      sortFunctionView.render();
+      this.setSortFunctionsWeight();
+      this._sortedFilteredView.showSortContainers();
+    });
+    // Change sort function direction
     $('.sortIconContainer').click((e) => {
       const sortFunctionDOM = $(e.currentTarget).closest('.sortFunction');
-      this.updateSortFunctionSortDirection(sortFunctionDOM);
+      const sortFunctionView = this._sortedFilteredView.allSortFunctionsView[sortFunctionDOM.attr('id')];
+
+      if(sortFunctionView.sortFunctionModel.sortDirection == 'desc') {
+        sortFunctionView.sortFunctionModel.setSortDirection('asc');
+      }
+      else {
+        sortFunctionView.sortFunctionModel.setSortDirection('desc');
+      }
+
+      sortFunctionView.render();
+      if(sortFunctionView.isSelected()) {
+        this._sortedFilteredView.renderParameters();
+      }
+      this.setSortFunctionsWeight();
+      this._sortedFilteredView.showSortContainers();
     });
 
     // Modify parameters of a sort function
@@ -156,6 +183,9 @@ class SortedFilteredController {
     $('.sortIconContainer').mousedown((mousedownEvent) => {
       mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortIcon
     });
+    $('.sortIconNone').mousedown((mousedownEvent) => {
+      mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortIconNone
+    });
     $('.sortParameters').mousedown((mousedownEvent) => {
       mousedownEvent.stopImmediatePropagation(); // Avoid dragging, when clicking on sortParameters
     });
@@ -181,33 +211,6 @@ class SortedFilteredController {
       this._sortedFilteredView.renderParameters();
       this._sortedFilteredView.showSortContainers();
     }
-  }
-
-  updateSortFunctionSortDirection(sortFunctionDOM) {
-    const sortFunctionView = this._sortedFilteredView.allSortFunctionsView[sortFunctionDOM.attr('id')];
-
-    if(sortFunctionView.sortFunctionModel.sortDirection == 'desc') {
-      // Desc to Asc
-      sortFunctionView.sortFunctionModel.setSortDirection('asc');
-    }
-    else if(sortFunctionView.sortFunctionModel.sortDirection == 'asc') {
-      // Asc to !Active
-      sortFunctionView.sortFunctionModel.isActive = false;
-      sortFunctionView.sortFunctionModel.setSortDirection('');
-      this._sortedFilteredView.unselectSortFunction(sortFunctionView);
-    }
-    else if(!sortFunctionView.sortFunctionModel.isActive) {
-      //!Active to Desc
-      sortFunctionView.sortFunctionModel.isActive = true;
-      sortFunctionView.sortFunctionModel.setSortDirection('desc');
-    }
-
-    sortFunctionView.render();
-    if(sortFunctionView.isSelected()) {
-      this._sortedFilteredView.renderParameters();
-    }
-    this.setSortFunctionsWeight();
-    this._sortedFilteredView.showSortContainers();
   }
 
   dragAndDropSortFunction(mousedownEvent) {

@@ -75,9 +75,7 @@ const colors = require("../../utils/colors");
   }
   setSortDirection(val) {
     const rslt = (this._sortDirection = val);
-    if(val != '') {
-      this.setClassesColors();
-    }
+    this.setClassesColors();
     return rslt;
   }
   _weight; // Number | Weight of this sort function, compared to other sort functions, in mainSortFunction calculation.
@@ -125,7 +123,7 @@ const colors = require("../../utils/colors");
     this._sortedCommentsScore = [];
     this._commentsIndex = {};
     this._isActive = false;
-    this._sortDirection = '';
+    this._sortDirection = 'desc';
     this._weight = 0;
     this._classifyMethod = 'largeRelativeDifferenceMethod';
     return this;

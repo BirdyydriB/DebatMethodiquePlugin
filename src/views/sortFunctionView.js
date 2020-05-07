@@ -69,20 +69,20 @@ class SortFunctionView {
     if(this._sortFunctionModel.isActive) {
       this._sortFunctionDOM.removeClass('bg-gray-400');
       this._sortFunctionDOM.find('.sortParameters').removeClass('hidden');
+      this._sortFunctionDOM.find('.sortIconIsNotActive').addClass('hidden');
+      this._sortFunctionDOM.find('.sortIconIsActive').removeClass('hidden');
 
       if(this._sortFunctionModel.sortDirection == 'asc') {
         this._sortFunctionDOM.addClass('badToGoodColor active cursor-move');
         this._sortFunctionDOM.removeClass('goodToBadColor');
         this._sortFunctionDOM.find('.sortIconUp').removeClass('hidden');
         this._sortFunctionDOM.find('.sortIconDown').addClass('hidden');
-        this._sortFunctionDOM.find('.sortIconNone').addClass('hidden');
       }
       else {
         this._sortFunctionDOM.addClass('goodToBadColor active cursor-move');
         this._sortFunctionDOM.removeClass('badToGoodColor');
         this._sortFunctionDOM.find('.sortIconUp').addClass('hidden');
         this._sortFunctionDOM.find('.sortIconDown').removeClass('hidden');
-        this._sortFunctionDOM.find('.sortIconNone').addClass('hidden');
       }
     }
     else {
@@ -90,8 +90,9 @@ class SortFunctionView {
       this._sortFunctionDOM.addClass('bg-gray-400');
       this._sortFunctionDOM.find('.sortIconUp').addClass('hidden');
       this._sortFunctionDOM.find('.sortIconDown').addClass('hidden');
-      this._sortFunctionDOM.find('.sortIconNone').removeClass('hidden');
       this._sortFunctionDOM.find('.sortParameters').addClass('hidden');
+      this._sortFunctionDOM.find('.sortIconIsNotActive').removeClass('hidden');
+      this._sortFunctionDOM.find('.sortIconIsActive').addClass('hidden');
     }
   }
 
