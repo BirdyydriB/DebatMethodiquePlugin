@@ -118,14 +118,38 @@ class SortedFilteredController {
 
     // Update on a MIN / MAX filter
     $('#sortFunctionDistributionBarChart').on('minimumFilterChange', (event) => {
-      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.minimumFilter = event.minimumFilter;
-      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.updateClassesColors();
-      this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
+      const currentSortFunction = this._sortedFilteredView.sortFunctionSelected.sortFunctionModel;
+      const oldMinimumFilterIndex = currentSortFunction.minimumFilterIndex;
+      currentSortFunction.minimumFilter = event.minimumFilter;
+      currentSortFunction.setClassesColors();
+
+      if(oldMinimumFilterIndex != currentSortFunction.minimumFilterIndex) {
+        // New comments filtered
+        this._sortedFilteredView.graphModel.mainSortFunction.classify();
+        // Update filtered comments bars on barChart
+        this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
+        this._sortedFilteredView.barChart.updateCommentsColors(currentSortFunction.classes);
+        // Update View
+        this._sortedFilteredView.sortCommentsToContainers();
+        this._sortedFilteredView.showSortContainers();
+      }
     });
     $('#sortFunctionDistributionBarChart').on('maximumFilterChange', (event) => {
-      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.maximumFilter = event.maximumFilter;
-      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.updateClassesColors();
-      this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
+      const currentSortFunction = this._sortedFilteredView.sortFunctionSelected.sortFunctionModel;
+      const oldMaximumFilterIndex = currentSortFunction.maximumFilterIndex;
+      currentSortFunction.maximumFilter = event.maximumFilter;
+      currentSortFunction.setClassesColors();
+
+      if(oldMaximumFilterIndex != currentSortFunction.maximumFilterIndex) {
+        // New comments filtered
+        this._sortedFilteredView.graphModel.mainSortFunction.classify();
+        // Update filtered comments bars on barChart
+        this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
+        this._sortedFilteredView.barChart.updateCommentsColors(currentSortFunction.classes);
+        // Update View
+        this._sortedFilteredView.sortCommentsToContainers();
+        this._sortedFilteredView.showSortContainers();
+      }
     });
 
     // Drag and Drop sortFunctions to change theire weight
@@ -138,6 +162,9 @@ class SortedFilteredController {
     $('.sortFunction').mousedown((mousedownEvent) => {
       this.dragAndDropSortFunction(mousedownEvent);
     });
+
+    // Init filtered comments for barChart
+    this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
 
     return this;
   }
@@ -271,6 +298,7 @@ class SortedFilteredController {
     }
     // Weights change : sort again
     this._sortedFilteredView.graphModel.mainSortFunction.classify();
+    this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
     this._sortedFilteredView.sortCommentsToContainers();
   }
 

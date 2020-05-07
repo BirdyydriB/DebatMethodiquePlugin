@@ -76,7 +76,7 @@ const colors = require("../../utils/colors");
   setSortDirection(val) {
     const rslt = (this._sortDirection = val);
     if(val != '') {
-      this.updateClassesColors();
+      this.setClassesColors();
     }
     return rslt;
   }
@@ -94,12 +94,20 @@ const colors = require("../../utils/colors");
   set minimumFilter(val) {
     return this._minimumFilter = val;
   }
+  _minimumFilterIndex;
+  get minimumFilterIndex() {
+    return this._minimumFilterIndex;
+  }
   _maximumFilter; // Number | Each data > to this should be filtered
   get maximumFilter() {
     return this._maximumFilter;
   }
   set maximumFilter(val) {
     return this._maximumFilter = val;
+  }
+  _maximumFilterIndex;
+  get maximumFilterIndex() {
+    return this._maximumFilterIndex;
   }
 
   // --- Functions
@@ -169,7 +177,7 @@ const colors = require("../../utils/colors");
       this.sameSizeClasses();
     }
 
-    this.updateClassesColors();
+    this.setClassesColors();
 
     if(classChange) {
       // Randomify comments of same classes
@@ -233,16 +241,21 @@ const colors = require("../../utils/colors");
     return classChange;
   }
 
-  updateClassesColors() {
+  setClassesColors() {
     this._minimumFilterIndex = Math.max(0, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._minimumFilter}, 'commentScore'));
     const minClass = this._sortedCommentsScore[this._minimumFilterIndex].classIndex;
 
     this._maximumFilterIndex = Math.min(this._sortedCommentsScore.length, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._maximumFilter}, 'commentScore'));
     const maxClass = this._sortedCommentsScore[this._maximumFilterIndex - 1].classIndex;
 
+
     for (var i = 0 ; i < this._classes.length ; i++) {
-      if((this._classes.length == 1) || (minClass == maxClass) || (i < minClass) || (i > maxClass)) {
-        // Only one class, or all of this class comments filtered : give a color does not make any sens
+      if((this._classes.length == 1) || (minClass == maxClass)) {
+        // Only one class, give a color does not make any sens
+        this._classes[i].color = '#4a5568';
+      }
+      else if((i < minClass) || (i > maxClass)) {
+        // All of this class comments filtered
         this._classes[i].color = '';
       }
       else {

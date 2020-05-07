@@ -30,6 +30,10 @@ class MainSortFunction extends sort_function.SortFunction {
   get allSortFunctions() {
     return this._allSortFunctions;
   }
+  _filteredComments;
+  get filteredComments() {
+    return this._filteredComments;
+  }
 
   // --- Functions
   /**
@@ -41,6 +45,7 @@ class MainSortFunction extends sort_function.SortFunction {
     super();
     this._label = 'mainSortFunction';
     this._id = 'mainSortFunction';
+    this._filteredComments = {};
     return this;
   }
 
@@ -59,6 +64,41 @@ class MainSortFunction extends sort_function.SortFunction {
     });
   }
 
+  classifyRec(commentsByClass, sortFunction) {
+    var result = [];
+    for(var commentClass of commentsByClass) {
+
+      var currentClassSplitted = [];
+      for(var commentId of commentClass) {
+
+        const commentIndex = sortFunction.commentsIndex[commentId];
+        if((commentIndex >= sortFunction.minimumFilterIndex) && (commentIndex < sortFunction.maximumFilterIndex)) {
+          // Comment not filtered
+          const commentScore = (sortFunction.sortDirection == 'asc') ?
+            (sortFunction.classes.length - sortFunction.sortedCommentsScore[commentIndex].classIndex) :
+            sortFunction.sortedCommentsScore[commentIndex].classIndex;
+
+          if(!currentClassSplitted[commentScore]) {
+            currentClassSplitted[commentScore] = [];
+          }
+          currentClassSplitted[commentScore].push(commentId);
+        }
+        else {
+          // Comment filtered
+          this._filteredComments[commentId] = sortFunction.id;
+        }
+      }
+
+      _.each(currentClassSplitted, (comments) => {
+        if(comments) {
+          result.push(comments);
+        }
+      });
+    }
+
+    return result;
+  }
+
   classify() {
     console.log('mainSortFunction classify');
     const activeFunctions = _.filter(this._allSortFunctions, (sortFunction) => {
@@ -67,41 +107,32 @@ class MainSortFunction extends sort_function.SortFunction {
     const sortedActiveFunctions = _.sortBy(activeFunctions, 'weight').reverse();
 
     var commentsByClass = [];
+    this._filteredComments = {};
     if(sortedActiveFunctions.length > 0) {
-      // Init comments classification with first sort function
-      commentsByClass = _.map(sortedActiveFunctions[0].classes, (commentsClass) => {
-        return commentsClass.comments;
-      });
+      for(var commentIndex = 0 ; commentIndex < sortedActiveFunctions[0].sortedCommentsScore.length ; commentIndex++) {
+        if((commentIndex >= sortedActiveFunctions[0].minimumFilterIndex) && (commentIndex < sortedActiveFunctions[0].maximumFilterIndex)) {
+          // Comment not filtered
+          const currentClassIndex = sortedActiveFunctions[0].sortedCommentsScore[commentIndex].classIndex;
+          if(!commentsByClass[currentClassIndex]) {
+            commentsByClass[currentClassIndex] = [];
+          }
+          commentsByClass[currentClassIndex].push(sortedActiveFunctions[0].sortedCommentsScore[commentIndex].commentId);
+        }
+        else {
+          // Comment filtered
+          const commentId = sortedActiveFunctions[0].sortedCommentsScore[commentIndex].commentId;
+          this._filteredComments[commentId] = sortedActiveFunctions[0].id;
+        }
+      }
+
+      commentsByClass = _.values(commentsByClass);
       if(sortedActiveFunctions[0].sortDirection == 'asc') {
         commentsByClass = commentsByClass.reverse();
       }
-      _.each(sortedActiveFunctions[0].sortedCommentsScore, (commentScore, index) => {
-        // Init _sortedCommentsScore and _commentsIndex
-        this._sortedCommentsScore[index] = _.clone(commentScore);
-        this._commentsIndex[commentScore.commentId] = index;
-      });
 
       // Then (recursivly) classify comments of a same class, with next sort function
       for(var i = 1 ; i < sortedActiveFunctions.length ; i++) {
-        var currentFunctionClasses = [];
-        // Foreach classes of comments
-        for(var j = 0 ; j < commentsByClass.length ; j++) {
-          // GroupBy by current sort function classes
-          currentFunctionClasses.push(_.toArray(_.groupBy(commentsByClass[j], (commentId) => {
-            const commentIndex = sortedActiveFunctions[i].commentsIndex[commentId];
-            const commentScore = (sortedActiveFunctions[i].sortDirection == 'asc') ?
-              (sortedActiveFunctions[i].classes.length - sortedActiveFunctions[i].sortedCommentsScore[commentIndex].classIndex) :
-              sortedActiveFunctions[i].sortedCommentsScore[commentIndex].classIndex;
-
-            this._sortedCommentsScore[commentIndex].commentScore += '>' + commentScore;
-            this._commentsIndex[commentId] = commentIndex;
-
-            return commentScore;
-          })));
-        }
-
-        // Flatten result and save to classes of comments
-        commentsByClass = _.flatten(currentFunctionClasses, true);
+        commentsByClass = this.classifyRec(commentsByClass, sortedActiveFunctions[i]);
       }
     }
     else {
@@ -110,6 +141,9 @@ class MainSortFunction extends sort_function.SortFunction {
 
     // Save classifying results into classes
     this._classes = [];
+    this._commentsIndex = [];
+    this._sortedCommentsScore = [];
+    var commentIndex = 0;
     for (var i = 0; i < commentsByClass.length; i++) {
       const classColor = (commentsByClass.length == 1) ?
         '' : // Only one class, give a color does not make any sens
@@ -117,15 +151,24 @@ class MainSortFunction extends sort_function.SortFunction {
 
       this._classes[i] = {
         color: classColor,
-        comments: _.shuffle(commentsByClass[i]) // Randomify comments of a same class
+        comments: commentsByClass[i]
       };
       _.each(commentsByClass[i], (commentId) => {
-        this._sortedCommentsScore[this._commentsIndex[commentId]].classIndex = i;
+        this._commentsIndex[commentId] = commentIndex;
+        this._sortedCommentsScore[commentIndex] = {
+          classIndex: i,
+          commentId: commentId
+        };
+        commentIndex++;
       });
     }
 
+    console.log(this);
     // Sort all comments in graph
     this._graphModel.buildGrid((commentId) => {
+      if(!this._commentsIndex[commentId]) {
+        return 9999;
+      }
       return -this._sortedCommentsScore[this._commentsIndex[commentId]].classIndex;
     });
   }

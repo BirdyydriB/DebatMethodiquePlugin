@@ -91,12 +91,20 @@ class SortedFilteredView {
       $('#commentsContainer').prepend(sortContainer);
 
       _.each(sortClass.comments, (commentId) => {
+        // Show in case of hided comment
+        this._graphView.commentsView[commentId].commentView.show();
         // Put the comments in the right container
         sortContainer.prepend(this._graphView.commentsView[commentId].commentView);
         // And set header color
         this._graphView.commentsView[commentId].setHeaderColor(sortClass.color);
       });
     }
+
+    // Hide filtered comments
+    _.each(this._graphModel.mainSortFunction.filteredComments, (sortFunctionId, commentId) => {
+      this._graphView.commentsView[commentId].setHeaderColor('');
+      this._graphView.commentsView[commentId].commentView.hide();
+    });
   }
 
   selectSortFunction(sortFunctionView) {

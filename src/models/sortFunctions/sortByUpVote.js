@@ -24,6 +24,15 @@ class SortByUpVote extends sort_function.SortFunction {
     this._relativeDiffMax = 0.1;
     return this;
   }
+
+  init(comments) {
+    super.init(comments);
+    this._minimumFilter = 12;
+    this._maximumFilter = 43;
+
+    return this;
+  }
+
   /**
    * To sort comments by number of up vote
    * @access private

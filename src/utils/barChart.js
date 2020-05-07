@@ -22,6 +22,7 @@ class BarChart {
   _outerClassPadding; // Number | Padding before first bar and after last bar
 
   // BarChart datas
+  _sortFunction; // SortFunction | The sort function from which datas came from
   _svg; // d3.select | The <svg> whre the barChart is drawn
   _datas; // Array<Object<{commentScore: integer, commentId: string, classIndex: integer}>> | The ordered datas of the barChart
   _colors; // Array<Hexa> | Classes and there colors
@@ -32,11 +33,10 @@ class BarChart {
   _xScale; // d3.scaleBand | The linear scale for absciss
   _yScale; // d3.scaleLinear | The linear scale for ordinate
   _minimumFilter; // integer | Each data < to this should be filtered
-  _minimumFilterIndex; // integer | Index of this minimum in _datas
   _bottomFilterCursor; // d3.select | Cursor to set _minimumFilter
   _maximumFilter; // integer | Each data >= to this should be filtered
-  _maximumFilterIndex; // integer | Index of this maximum in _datas
   _topFilterCursor; // d3.select | Cursor to set _maximumFilter
+  _allFilteredComments; // Object<String> | All the comments filtered, Key : the filtered comment id, Value : the sort function id that filter this comment
 
   // --- Functions
   /**
@@ -61,6 +61,7 @@ class BarChart {
     this._maxScore = 0;
     this._minimumFilter = 0;
     this._maximumFilter = 0;
+    this._allFilteredComments = {};
 
     return this;
   }
@@ -79,7 +80,6 @@ class BarChart {
       .attr("width", this._width)
       .attr("height", this._height)
       .attr("viewBox", [0, 0, this._width, this._height])
-      .attr("style", "border: 2px solid red;");
 
     // Init the scales
     this._xScale = d3.scaleBand()
@@ -184,22 +184,71 @@ class BarChart {
       .attr("class", "fill-current text-gray-700 opacity-25");
 
     // Pattern for filtered bars
-    const filteredPattern = this._svg.append("pattern")
-      .attr("id", "filteredPattern")
+    const filteredPatternThis = this._svg.append("pattern")
+      .attr("id", "filteredPatternThis")
       .attr("width", 4)
       .attr("height", 4)
       .attr("patternTransform", "rotate(45)")
       .attr("patternUnits", "userSpaceOnUse");
-    filteredPattern.append("rect")
+    filteredPatternThis.append("rect")
       .attr("width", 4)
       .attr("height", 4)
       .attr("class", "fill-current text-black");
-    filteredPattern.append("rect")
+    filteredPatternThis.append("rect")
       .attr("width", 2)
       .attr("height", 4)
       .attr("class", "fill-current text-gray-400");
 
+    const filteredPatternOther = this._svg.append("pattern")
+      .attr("id", "filteredPatternOther")
+      .attr("width", 4)
+      .attr("height", 4)
+      .attr("patternTransform", "rotate(45)")
+      .attr("patternUnits", "userSpaceOnUse");
+    filteredPatternOther.append("rect")
+      .attr("width", 4)
+      .attr("height", 4)
+      .attr("class", "fill-current text-red-600");
+    filteredPatternOther.append("rect")
+      .attr("width", 2)
+      .attr("height", 4)
+      .attr("class", "fill-current text-gray-400");
+
+    // Legend
+    var legend = this._svg.append("g")
+      .attr("class", "legend")
+      .attr("transform", "translate(75, 25)");
+    legend.selectAll('g')
+      .data([1, 2])
+      .enter()
+      .append('g')
+      .each(function(d, i) {
+        var g = d3.select(this);
+        g.append("rect")
+          .attr("x", 0)
+          .attr("y", i * 25)
+          .attr("width", 20)
+          .attr("height", 20)
+          .style("fill", (d == 1) ? "url(#filteredPatternThis)" : "url(#filteredPatternOther)");
+        g.append("text")
+          .attr("x", 25)
+          .attr("y", i * 25 + 12)
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle")
+          .text((d == 1) ? "Filtré par cette fonction" : "Filtré par une autre fonction");
+      });
+
+
     return this;
+  }
+
+  /**
+    * Set all filtered comments
+    * @access public
+    * @param {Object} allFilteredComments - All filtered comments (by all sort functions)
+    */
+  setAllFilteredComments(allFilteredComments) {
+    this._allFilteredComments = allFilteredComments;
   }
 
   /**
@@ -208,6 +257,7 @@ class BarChart {
     * @param {SortFunctionModel} sortFunctionModel - The sortFunctionModel
     */
   setDatas(sortFunctionModel) {
+    this._sortFunction = sortFunctionModel;
     this._xLabel = localize('SORT_FUNCTION_BARCHART_X_LABEL');
     this._yLabel = sortFunctionModel.measurementLabel;
     this._colors = _.map(sortFunctionModel.classes, 'color');
@@ -328,7 +378,7 @@ class BarChart {
       .attr("y", d => this._yScale(d.commentScore))
       .attr("height", d => this._yScale(0) - this._yScale(d.commentScore + 0.1))
       .attr("width", d => (d.classIndex == -1) ? 0 : this._xScale.bandwidth())
-      .attr("fill", fillColor);
+      .attr("fill", (d, i) => this.fillColor(d, i));
   }
 
 
@@ -379,7 +429,6 @@ class BarChart {
           .attr("height", this._yScale(-0.1) - this._yScale(this._minimumFilter) - newY + 1);
 
         const minimumFilter = this._yScale.invert(this._yScale(this._minimumFilter) + newY);
-        this._minimumFilterIndex = _.sortedIndex(this._datas, {commentScore: minimumFilter}, 'commentScore');
         $("#sortFunctionDistributionBarChart").trigger({
           type: "minimumFilterChange",
           minimumFilter: minimumFilter
@@ -390,7 +439,6 @@ class BarChart {
           .attr("height", this._yScale(this._maximumFilter) - this._yScale(this._maxScore + 0.1) + newY + 1);
 
         const maximumFilter = this._yScale.invert(this._yScale(this._maximumFilter) + newY);
-        this._maximumFilterIndex = _.sortedIndex(this._datas, {commentScore: maximumFilter}, 'commentScore');
         $("#sortFunctionDistributionBarChart").trigger({
           type: "maximumFilterChange",
           maximumFilter: maximumFilter
@@ -412,15 +460,13 @@ class BarChart {
       // "fake" bars (classSeparators)
       return "";
     }
-    if((i < this._minimumFilterIndex) || (i >= this._maximumFilterIndex)) {
-      // Filtered bars
-      return "url(#filteredPattern)";
+    if(this._allFilteredComments[d.commentId]) {
+      // Filtered comment
+      return (this._allFilteredComments[d.commentId] == this._sortFunction.id) ?
+        "url(#filteredPatternThis)" :
+        "url(#filteredPatternOther)";
     }
-    if(this._colors[d.classIndex] == '') {
-      // Default none color
-      return "#4a5568";
-    }
-    // Right color
+
     return this._colors[d.classIndex];
   }
 
@@ -431,7 +477,7 @@ class BarChart {
       .selectAll("rect")
       .data(this._datas)
       .join("rect")
-      .attr("fill", fillColor);
+      .attr("fill", (d, i) => this.fillColor(d, i));
   }
 
 
