@@ -125,13 +125,6 @@ class SortedFilteredView {
     }
   }
 
-  renderParameters() {
-    console.log('renderParameters', this._sortFunctionSelected);
-    if(this._sortFunctionSelected) {
-      this._sortFunctionSelected.renderParameters(this._barChart);
-    }
-  }
-
   showSortContainers() {
     $('#commentsContainer').addClass('flex flex-col justify-between');
     $('.sortContainer').each((index, container) => {

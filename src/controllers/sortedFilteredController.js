@@ -49,8 +49,6 @@ class SortedFilteredController {
     this._graphNavigator = graphNavigator;
     this._isInSortedMode = false;
 
-    this.setSortFunctionsWeight();
-
     // Each comments : add a listener on selectCommentButton
     _.each(this._sortedFilteredView.graphView.commentsView, (commentView) => {
       commentView.commentView.find('.selectCommentButton-sort').click((() => {
@@ -77,8 +75,8 @@ class SortedFilteredController {
         this._sortedFilteredView.unselectSortFunction(sortFunctionView);
       }
       sortFunctionView.render();
+      // SortFunction activated or desactivated : it's changing all sort functions weights (mainSortFunction will be recalculated also)
       this.setSortFunctionsWeight();
-      this._sortedFilteredView.showSortContainers();
     });
     // Change sort function direction
     $('.sortIconContainer').click((e) => {
@@ -91,13 +89,9 @@ class SortedFilteredController {
       else {
         sortFunctionView.sortFunctionModel.setSortDirection('desc');
       }
-
       sortFunctionView.render();
-      if(sortFunctionView.isSelected()) {
-        this._sortedFilteredView.renderParameters();
-      }
-      this.setSortFunctionsWeight();
-      this._sortedFilteredView.showSortContainers();
+      // SortFunction change sorting direction : we have to recalculate mainSortFunction
+      this.mainSortFunctionClassify();
     });
 
     // Modify parameters of a sort function
@@ -151,14 +145,7 @@ class SortedFilteredController {
       currentSortFunction.setClassesColors();
 
       if(oldMinimumFilterIndex != currentSortFunction.minimumFilterIndex) {
-        // New comments filtered
-        this._sortedFilteredView.graphModel.mainSortFunction.classify();
-        // Update filtered comments bars on barChart
-        this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
-        this._sortedFilteredView.barChart.updateCommentsColors(currentSortFunction.classes);
-        // Update View
-        this._sortedFilteredView.sortCommentsToContainers();
-        this._sortedFilteredView.showSortContainers();
+        this.mainSortFunctionClassify();
       }
     });
     $('#sortFunctionDistributionBarChart').on('maximumFilterChange', (event) => {
@@ -168,14 +155,7 @@ class SortedFilteredController {
       currentSortFunction.setClassesColors();
 
       if(oldMaximumFilterIndex != currentSortFunction.maximumFilterIndex) {
-        // New comments filtered
-        this._sortedFilteredView.graphModel.mainSortFunction.classify();
-        // Update filtered comments bars on barChart
-        this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
-        this._sortedFilteredView.barChart.updateCommentsColors(currentSortFunction.classes);
-        // Update View
-        this._sortedFilteredView.sortCommentsToContainers();
-        this._sortedFilteredView.showSortContainers();
+        this.mainSortFunctionClassify();
       }
     });
 
@@ -193,6 +173,10 @@ class SortedFilteredController {
       this.dragAndDropSortFunction(mousedownEvent);
     });
 
+    // Init sortFunctions weights
+    this.setSortFunctionsWeight();
+    // Then "hide" sort containers as we start in Graph Mode
+    this._sortedFilteredView.hideSortContainers();
     // Init filtered comments for barChart
     this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
 
@@ -207,9 +191,8 @@ class SortedFilteredController {
 
     var classChange = this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classify();
     if(classChange) {
-      this.setSortFunctionsWeight();
-      this._sortedFilteredView.renderParameters();
-      this._sortedFilteredView.showSortContainers();
+      this._sortedFilteredView.sortFunctionSelected.renderParameters(this._sortedFilteredView.barChart);
+      this.mainSortFunctionClassify();
     }
   }
 
@@ -286,7 +269,6 @@ class SortedFilteredController {
 
         // Sort change : recalculate weight and sort comments again
         this.setSortFunctionsWeight();
-        this._sortedFilteredView.showSortContainers();
       });
     }
   }
@@ -299,10 +281,19 @@ class SortedFilteredController {
       const sortFunction = this._sortedFilteredView.graphModel.mainSortFunction.allSortFunctions[$(sortFilterFunctionDOM).attr('id')];
       sortFunction.weight = childs.length - weight;
     }
-    // Weights change : sort again
+
+    // Weights change : sort again - TODO : only if real change
+    this.mainSortFunctionClassify();
+  }
+
+  mainSortFunctionClassify() {
     this._sortedFilteredView.graphModel.mainSortFunction.classify();
     this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
+    if(this._sortedFilteredView.sortFunctionSelected) {
+      this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
+    }
     this._sortedFilteredView.sortCommentsToContainers();
+    this._sortedFilteredView.showSortContainers();
   }
 
   toggleSortMode() {
