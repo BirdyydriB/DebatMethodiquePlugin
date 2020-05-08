@@ -211,6 +211,7 @@ const colors = require("../../utils/colors");
       return (comment.commentScore / maxVal) + 0.1;
     });
 
+    // Init with first comment
     var currentClassIndex = 0;
     this._classes = [{
       color: null,
@@ -219,10 +220,20 @@ const colors = require("../../utils/colors");
     classChange = classChange || (this._sortedCommentsScore[0]['classIndex'] != 0);
     this._sortedCommentsScore[0]['classIndex'] = 0;
 
-    for (var i = 1; i < normalized.length; i++) {
+    // Calculate relative differences between comments, and max of this diff
+    var maxDiff = 0;
+    var relativeDiffs = [];
+    for(var i = 1; i < normalized.length; i++) {
       const relativeDiff = ((normalized[i] - normalized[i - 1]) / normalized[i - 1]);
+      relativeDiffs.push(relativeDiff);
+      if(relativeDiff > maxDiff) {
+        maxDiff = relativeDiff;
+      }
+    }
 
-      if (relativeDiff > this._relativeDiffMax) {
+    // Create classes
+    for (var i = 1; i < normalized.length; i++) {
+      if (relativeDiffs[i - 1] > (maxDiff * this._relativeDiffMax)) {
         // Init new class
         currentClassIndex++;
         this._classes[currentClassIndex] = {

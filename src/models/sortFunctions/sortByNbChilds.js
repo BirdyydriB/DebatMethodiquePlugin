@@ -21,7 +21,7 @@ class SortByNbChilds extends sort_function.SortFunction {
     this._label = localize('SORT_FUNCTION_NBCHILDS_LABEL');
     this._measurementLabel = localize('SORT_FUNCTION_NBCHILDS_MEASUREMENT_LABEL');
     this._id = 'sortByNbChilds';
-    this._relativeDiffMax = 0.3;
+    this._relativeDiffMax = 0.1;
     this._isActive = true;
     this._sortDirection = 'desc';
     return this;
