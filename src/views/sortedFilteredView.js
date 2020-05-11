@@ -72,6 +72,13 @@ class SortedFilteredView {
     this._barChart = new sortFunction_barChart.BarChart()
       .init('#sortFunctionDistributionBarChart');
 
+    // Init containers
+    for(var i = 0 ; i < _.keys(comments).length ; i++) {
+      const sortContainer = $('<div class="sortContainer flex flex-wrap justify-start" color="" index="' + i + '"></div>');
+      $('#commentsContainer').prepend(sortContainer);
+    }
+    $('.sortContainer').hide();
+
     return this;
   }
 
@@ -80,31 +87,46 @@ class SortedFilteredView {
   }
 
   sortCommentsToContainers() {
-    $('.commentContainer').prependTo($('#commentsContainer'));
-    $('.sortContainer').remove();
+    // Hide all containers (only those who havec visible comments will be shown)
+    $('.sortContainer').hide();
 
     for(var i = 0 ; i < this._graphModel.mainSortFunction.classes.length ; i++) {
       const sortClass = this._graphModel.mainSortFunction.classes[i];
-
-      // Create the flex container
-      const sortContainer = $('<div class="sortContainer flex flex-wrap justify-start" color="' + sortClass.color + '"></div>');
-      $('#commentsContainer').prepend(sortContainer);
+      const sortContainer = $('.sortContainer[index="' + i + '"]');
+      var allCommentsFiltered = true;
+      sortContainer.attr('color', sortClass.color);
 
       _.each(sortClass.comments, (commentId) => {
         // Show in case of hided comment
         this._graphView.commentsView[commentId].commentView.show();
-        // Put the comments in the right container
-        sortContainer.prepend(this._graphView.commentsView[commentId].commentView);
         // And set header color
         this._graphView.commentsView[commentId].setHeaderColor(sortClass.color);
+        // Put the comments in the right container
+        const currentContainer = $(this._graphView.commentsView[commentId].commentView).closest('.sortContainer');
+        const currentContainerIndex = (currentContainer) ?
+          currentContainer.attr('index')
+          : -1;
+        if(currentContainerIndex != i) {
+          // Change container of the comment
+          sortContainer.prepend(this._graphView.commentsView[commentId].commentView);
+        }
+
+        // Test if current comment is hidden
+        allCommentsFiltered = allCommentsFiltered && this._graphModel.mainSortFunction.filteredComments[commentId];
       });
+
+      if(!allCommentsFiltered) {
+        sortContainer.show();
+      }
     }
 
     // Hide filtered comments
-    _.each(this._graphModel.mainSortFunction.filteredComments, (sortFunctionId, commentId) => {
+    _.each(this._graphModel.mainSortFunction.filteredComments, (sortFunctionIds, commentId) => {
       this._graphView.commentsView[commentId].setHeaderColor('');
       this._graphView.commentsView[commentId].commentView.hide();
     });
+
+    this.showSortContainers();
   }
 
   selectSortFunction(sortFunctionView) {
@@ -127,7 +149,7 @@ class SortedFilteredView {
 
   showSortContainers() {
     $('#commentsContainer').addClass('flex flex-col justify-between');
-    $('.sortContainer').each((index, container) => {
+    $('.sortContainer:visible').each((index, container) => {
       $(container).addClass('m-2 border-l-3 border-solid rounded');
       $(container).css('border-color', $(container).attr('color'));
     });
@@ -135,7 +157,7 @@ class SortedFilteredView {
 
   hideSortContainers() {
     $('#commentsContainer').removeClass(['flex', 'flex-col', 'justify-between']);
-    $('.sortContainer').each((index, container) => {
+    $('.sortContainer:visible').each((index, container) => {
       $(container).removeClass(['m-2', 'border-l-3', 'border-solid', 'rounded']);
       $(container).css('border-color', '');
     });

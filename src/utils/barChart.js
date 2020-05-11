@@ -36,7 +36,7 @@ class BarChart {
   _bottomFilterCursor; // d3.select | Cursor to set _minimumFilter
   _maximumFilter; // integer | Each data >= to this should be filtered
   _topFilterCursor; // d3.select | Cursor to set _maximumFilter
-  _allFilteredComments; // Object<String> | All the comments filtered, Key : the filtered comment id, Value : the sort function id that filter this comment
+  _allFilteredComments; // Object<Array<String>> | All the comments filtered, Key : the filtered comment id, Value : the sort functions ids that filter this comment
 
   // --- Functions
   /**
@@ -276,10 +276,6 @@ class BarChart {
     _.each(this._classSeparators, (classSeparatorIndex) => {
       this._datas.splice(classSeparatorIndex, 0, {classIndex: -1, commentScore: this._datas[classSeparatorIndex - 1].commentScore});
     });
-
-    // Update filter indexes
-    this._minimumFilterIndex = _.sortedIndex(this._datas, {commentScore: this._minimumFilter}, 'commentScore');
-    this._maximumFilterIndex = _.sortedIndex(this._datas, {commentScore: this._maximumFilter}, 'commentScore');
   }
 
   /**
@@ -461,7 +457,7 @@ class BarChart {
     }
     if(this._allFilteredComments[d.commentId]) {
       // Filtered comment
-      return (this._allFilteredComments[d.commentId] == this._sortFunction.id) ?
+      return (this._allFilteredComments[d.commentId][0] == this._sortFunction.id) ?
         "url(#filteredPatternThis)" :
         "url(#filteredPatternOther)";
     }

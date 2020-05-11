@@ -30,10 +30,6 @@ class MainSortFunction extends sort_function.SortFunction {
   get allSortFunctions() {
     return this._allSortFunctions;
   }
-  _filteredComments;
-  get filteredComments() {
-    return this._filteredComments;
-  }
 
   // --- Functions
   /**
@@ -61,117 +57,150 @@ class MainSortFunction extends sort_function.SortFunction {
     _.each(this._allSortFunctions, (sortFunction) => {
       sortFunction.init(this._graphModel.commentsModel)
         .classify();
+
+      // Link to this._filteredComments
+      sortFunction._filteredComments = this._filteredComments;
     });
   }
 
-  classifyRec(commentsByClass, sortFunction) {
-    var result = [];
-    for(var commentClass of commentsByClass) {
-
-      var currentClassSplitted = [];
-      for(var commentId of commentClass) {
-
-        const commentIndex = sortFunction.commentsIndex[commentId];
-        if((commentIndex >= sortFunction.minimumFilterIndex) && (commentIndex < sortFunction.maximumFilterIndex)) {
-          // Comment not filtered
-          const commentScore = (sortFunction.sortDirection == 'asc') ?
-            (sortFunction.classes.length - sortFunction.sortedCommentsScore[commentIndex].classIndex) :
-            sortFunction.sortedCommentsScore[commentIndex].classIndex;
-
-          if(!currentClassSplitted[commentScore]) {
-            currentClassSplitted[commentScore] = [];
-          }
-          currentClassSplitted[commentScore].push(commentId);
-        }
-        else {
-          // Comment filtered
-          this._filteredComments[commentId] = sortFunction.id;
-        }
-      }
-
-      _.each(currentClassSplitted, (comments) => {
-        if(comments) {
-          result.push(comments);
-        }
-      });
-    }
-
-    return result;
-  }
 
   classify() {
-    console.log('mainSortFunction classify');
     const activeFunctions = _.filter(this._allSortFunctions, (sortFunction) => {
       return sortFunction.isActive;
     });
     const sortedActiveFunctions = _.sortBy(activeFunctions, 'weight').reverse();
 
-    var commentsByClass = [];
-    this._filteredComments = {};
     if(sortedActiveFunctions.length > 0) {
-      for(var commentIndex = 0 ; commentIndex < sortedActiveFunctions[0].sortedCommentsScore.length ; commentIndex++) {
-        if((commentIndex >= sortedActiveFunctions[0].minimumFilterIndex) && (commentIndex < sortedActiveFunctions[0].maximumFilterIndex)) {
-          // Comment not filtered
-          const currentClassIndex = sortedActiveFunctions[0].sortedCommentsScore[commentIndex].classIndex;
-          if(!commentsByClass[currentClassIndex]) {
-            commentsByClass[currentClassIndex] = [];
+      this._sortedCommentsScore = [];
+
+      // Calculate score for each comments, as a concat of all actives sort functions classes
+      _.each(_.keys(this._graphModel.commentsModel), (commentId) => {
+        var commentScores = [];
+        _.each(sortedActiveFunctions, (sortFunction) => {
+          var currentCommentClass = sortFunction.sortedCommentsScore[sortFunction.commentsIndex[commentId]].classIndex;
+          if(sortFunction.sortDirection == 'asc') {
+            currentCommentClass = sortFunction.classes.length - currentCommentClass;
           }
-          commentsByClass[currentClassIndex].push(sortedActiveFunctions[0].sortedCommentsScore[commentIndex].commentId);
-        }
-        else {
-          // Comment filtered
-          const commentId = sortedActiveFunctions[0].sortedCommentsScore[commentIndex].commentId;
-          this._filteredComments[commentId] = sortedActiveFunctions[0].id;
-        }
-      }
+          // Pad to 5 digits
+          currentCommentClass = ("00000" + currentCommentClass).slice(-5);
+          commentScores.push(currentCommentClass);
+        });
 
-      commentsByClass = _.values(commentsByClass);
-      if(sortedActiveFunctions[0].sortDirection == 'asc') {
-        commentsByClass = commentsByClass.reverse();
-      }
-
-      // Then (recursivly) classify comments of a same class, with next sort function
-      for(var i = 1 ; i < sortedActiveFunctions.length ; i++) {
-        commentsByClass = this.classifyRec(commentsByClass, sortedActiveFunctions[i]);
-      }
-    }
-    else {
-      commentsByClass = [_.keys(this._graphModel.commentsModel)];
-    }
-
-    // Save classifying results into classes
-    this._classes = [];
-    this._commentsIndex = [];
-    this._sortedCommentsScore = [];
-    var commentIndex = 0;
-    for (var i = 0; i < commentsByClass.length; i++) {
-      const classColor = (commentsByClass.length == 1) ?
-        '' : // Only one class, give a color does not make any sens
-        colors.getGradientColor(BAD_COLOR, MIDDLE_COLOR, GOOD_COLOR, (i / (commentsByClass.length - 1)));
-
-      this._classes[i] = {
-        color: classColor,
-        comments: commentsByClass[i]
-      };
-      _.each(commentsByClass[i], (commentId) => {
-        this._commentsIndex[commentId] = commentIndex;
-        this._sortedCommentsScore[commentIndex] = {
-          classIndex: i,
-          commentId: commentId
-        };
-        commentIndex++;
+        this._sortedCommentsScore.push({
+          classIndex: null,
+          commentId: commentId,
+          commentScore: commentScores.join(';')
+        });
       });
+
+      // Sort comments
+      this._sortedCommentsScore = _.sortBy(this._sortedCommentsScore, (comment) => {
+        return comment.commentScore;
+      });
+
+      // And save index in this._sortedCommentsScore of each comments
+      _.each(this._sortedCommentsScore, (commentScore, index) => {
+        this._commentsIndex[commentScore.commentId] = index;
+      });
+
+      // Build classes
+      this._classes = _.toArray(_.groupBy(this._sortedCommentsScore, 'commentScore'));
+
+      // And save classIndex for each _sortedCommentsScore
+      _.each(this._classes, (classComments, index) => {
+        this._classes[index] = {
+          color: "",
+          comments: _.map(classComments, 'commentId')
+        };
+
+        var allCommentsFiltered = true;
+        _.each(classComments, (comment) => {
+          comment.classIndex = index;
+
+          // Filter comment if it's under/over min/max filter
+          _.each(sortedActiveFunctions, (sortFunction) => {
+            const isFiltered = ((sortFunction.commentsIndex[comment.commentId] < sortFunction.minimumFilterIndex) ||
+              (sortFunction.commentsIndex[comment.commentId] >= sortFunction.maximumFilterIndex));
+            if(isFiltered) {
+              this.filterComment(comment.commentId, sortFunction.id);
+            }
+          });
+
+          allCommentsFiltered = allCommentsFiltered && (this._filteredComments[comment.commentId] != undefined);
+        });
+
+        this._classes[index].filtered = allCommentsFiltered;
+      });
+
+      this.setClassesColors();
+    }
+  }
+
+  setClassesColors() {
+    const notFilteredClasses = _.filter(this._classes, (c) => !c.filtered);
+    for(var i = 0 ; i < notFilteredClasses.length ; i++) {
+      if(notFilteredClasses.length == 1) {
+        // Only one class, give a color does not make any sens
+        notFilteredClasses[i].color = '#4a5568';
+      }
+      else {
+        // Calculate colors from a gradient : red to green (threw yellow)
+        notFilteredClasses[i].color = colors.getGradientColor(GOOD_COLOR, MIDDLE_COLOR, BAD_COLOR, ((notFilteredClasses.length - 1 - i) / (notFilteredClasses.length - 1)));
+      }
+    }
+  }
+
+  filterComment(commentId, sortFunctionId) {
+    // Init if needed
+    if(!this._filteredComments[commentId]) {
+      this._filteredComments[commentId] = []
     }
 
-    console.log(this);
-    // Sort all comments in graph
-    this._graphModel.buildGrid((commentId) => {
-      if(!this._commentsIndex[commentId]) {
-        return 9999;
-      }
-      return -this._sortedCommentsScore[this._commentsIndex[commentId]].classIndex;
+    // Add new sortFunctionId to this._filteredComments then sort by sortFunction weight
+    if(_.indexOf(this._filteredComments[commentId], sortFunctionId) == -1) {
+      this._filteredComments[commentId].push(sortFunctionId);
+      this._filteredComments[commentId] = _.sortBy(this._filteredComments[commentId], (sortId) => -this._allSortFunctions[sortId].weight);
+    }
+
+    // Check if every comments of this class are filtered, filter this class if so
+    const filteredClassIndex = this._sortedCommentsScore[this._commentsIndex[commentId]].classIndex;
+    var allCommentsFiltered = true;
+    _.each(this._classes[filteredClassIndex].comments, (classCommentId) => {
+      allCommentsFiltered = allCommentsFiltered && (this._filteredComments[classCommentId] != undefined);
+    });
+    this._classes[filteredClassIndex].filtered = allCommentsFiltered;
+    this.setClassesColors();
+
+    // Propagate to others sort functions
+    _.each(this._allSortFunctions, (sortFunction) => {
+      sortFunction.setClassesColors();
     });
   }
+
+  unfilterComment(commentId, sortFunctionId) {
+    // Delete sortFunctionId from this._filteredComments
+    this._filteredComments[commentId] = _.filter(this._filteredComments[commentId], (id) => (id != sortFunctionId));
+    if(this._filteredComments[commentId].length == 0) {
+      // Not filtered by an other sortFunction : delete
+      delete this._filteredComments[commentId];
+    }
+
+    // Check if every comments of this class are filtered, unfilter this class if so
+    const filteredClassIndex = this._sortedCommentsScore[this._commentsIndex[commentId]].classIndex;
+    var allCommentsFiltered = true;
+    _.each(this._classes[filteredClassIndex].comments, (classCommentId) => {
+      allCommentsFiltered = allCommentsFiltered && (this._filteredComments[classCommentId] != undefined);
+    });
+    this._classes[filteredClassIndex].filtered = allCommentsFiltered;
+    this.setClassesColors();
+
+    // Propagate to others sort functions
+    _.each(this._allSortFunctions, (sortFunction) => {
+      sortFunction.setClassesColors();
+    });
+  }
+
+
 
 }
 

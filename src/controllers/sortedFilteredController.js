@@ -141,21 +141,51 @@ class SortedFilteredController {
     $('#sortFunctionDistributionBarChart').on('minimumFilterChange', (event) => {
       const currentSortFunction = this._sortedFilteredView.sortFunctionSelected.sortFunctionModel;
       const oldMinimumFilterIndex = currentSortFunction.minimumFilterIndex;
-      currentSortFunction.minimumFilter = event.minimumFilter;
-      currentSortFunction.setClassesColors();
+      currentSortFunction.setMinimumFilter(event.minimumFilter);
 
       if(oldMinimumFilterIndex != currentSortFunction.minimumFilterIndex) {
-        this.mainSortFunctionClassify();
+        // oldMinimumFilterIndex < currentSortFunction.minimumFilterIndex : filter comments
+        for(var commentIndex = oldMinimumFilterIndex ; commentIndex < currentSortFunction.minimumFilterIndex ; commentIndex++) {
+          const commentId = currentSortFunction.sortedCommentsScore[commentIndex].commentId;
+          this._sortedFilteredView.graphModel.mainSortFunction.filterComment(commentId, currentSortFunction.id);
+        }
+        // currentSortFunction.minimumFilterIndex < oldMinimumFilterIndex : unfilter comments
+        for(commentIndex = currentSortFunction.minimumFilterIndex ; commentIndex < oldMinimumFilterIndex ; commentIndex++) {
+          const commentId = currentSortFunction.sortedCommentsScore[commentIndex].commentId;
+          this._sortedFilteredView.graphModel.mainSortFunction.unfilterComment(commentId, currentSortFunction.id);
+        }
+
+        currentSortFunction.setClassesColors();
+
+        // Update view
+        this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
+        this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
+        this._sortedFilteredView.sortCommentsToContainers();
       }
     });
     $('#sortFunctionDistributionBarChart').on('maximumFilterChange', (event) => {
       const currentSortFunction = this._sortedFilteredView.sortFunctionSelected.sortFunctionModel;
       const oldMaximumFilterIndex = currentSortFunction.maximumFilterIndex;
-      currentSortFunction.maximumFilter = event.maximumFilter;
-      currentSortFunction.setClassesColors();
+      currentSortFunction.setMaximumFilter(event.maximumFilter);
 
       if(oldMaximumFilterIndex != currentSortFunction.maximumFilterIndex) {
-        this.mainSortFunctionClassify();
+        // oldMaximumFilterIndex < currentSortFunction.maximumFilterIndex : unfilter comments
+        for(var commentIndex = oldMaximumFilterIndex ; commentIndex < currentSortFunction.maximumFilterIndex ; commentIndex++) {
+          const commentId = currentSortFunction.sortedCommentsScore[commentIndex].commentId;
+          this._sortedFilteredView.graphModel.mainSortFunction.unfilterComment(commentId, currentSortFunction.id);
+        }
+        // currentSortFunction.maximumFilterIndex < oldMaximumFilterIndex : filter comments
+        for(commentIndex = currentSortFunction.maximumFilterIndex ; commentIndex < oldMaximumFilterIndex ; commentIndex++) {
+          const commentId = currentSortFunction.sortedCommentsScore[commentIndex].commentId;
+          this._sortedFilteredView.graphModel.mainSortFunction.filterComment(commentId, currentSortFunction.id);
+        }
+
+        currentSortFunction.setClassesColors();
+
+        // Update view
+        this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
+        this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
+        this._sortedFilteredView.sortCommentsToContainers();
       }
     });
 
@@ -290,10 +320,10 @@ class SortedFilteredController {
     this._sortedFilteredView.graphModel.mainSortFunction.classify();
     this._sortedFilteredView.barChart.setAllFilteredComments(this._sortedFilteredView.graphModel.mainSortFunction.filteredComments);
     if(this._sortedFilteredView.sortFunctionSelected) {
+      this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.setClassesColors();
       this._sortedFilteredView.barChart.updateCommentsColors(this._sortedFilteredView.sortFunctionSelected.sortFunctionModel.classes);
     }
     this._sortedFilteredView.sortCommentsToContainers();
-    this._sortedFilteredView.showSortContainers();
   }
 
   toggleSortMode() {

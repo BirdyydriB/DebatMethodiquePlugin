@@ -89,8 +89,10 @@ const colors = require("../../utils/colors");
   get minimumFilter() {
     return this._minimumFilter;
   }
-  set minimumFilter(val) {
-    return this._minimumFilter = val;
+  setMinimumFilter(val) {
+    var rslt = (this._minimumFilter = val);
+    this._minimumFilterIndex = Math.max(0, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._minimumFilter}, 'commentScore'));
+    return rslt;
   }
   _minimumFilterIndex;
   get minimumFilterIndex() {
@@ -100,13 +102,20 @@ const colors = require("../../utils/colors");
   get maximumFilter() {
     return this._maximumFilter;
   }
-  set maximumFilter(val) {
-    return this._maximumFilter = val;
+  setMaximumFilter(val) {
+    var rslt = (this._maximumFilter = val);
+    this._maximumFilterIndex = Math.min(this._sortedCommentsScore.length, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._maximumFilter}, 'commentScore'));
+    return rslt;
   }
   _maximumFilterIndex;
   get maximumFilterIndex() {
     return this._maximumFilterIndex;
   }
+  _filteredComments; // Object<Array> | All filtered comments (set by mainSortFunction), Key : commentId, Value : an array of all sortFunction ids that filter the comment.
+  get filteredComments() {
+    return this._filteredComments;
+  }
+
 
   // --- Functions
   /**
@@ -122,6 +131,7 @@ const colors = require("../../utils/colors");
 
     this._sortedCommentsScore = [];
     this._commentsIndex = {};
+    this._filteredComments = {};
     this._isActive = false;
     this._sortDirection = 'desc';
     this._weight = 0;
@@ -174,6 +184,9 @@ const colors = require("../../utils/colors");
     else if(this._classifyMethod == 'sameSizeClasses') {
       this.sameSizeClasses();
     }
+
+    this._minimumFilterIndex = Math.max(0, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._minimumFilter}, 'commentScore'));
+    this._maximumFilterIndex = Math.min(this._sortedCommentsScore.length, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._maximumFilter}, 'commentScore'));
 
     this.setClassesColors();
 
@@ -251,21 +264,22 @@ const colors = require("../../utils/colors");
   }
 
   setClassesColors() {
-    this._minimumFilterIndex = Math.max(0, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._minimumFilter}, 'commentScore'));
-    const minClass = this._sortedCommentsScore[this._minimumFilterIndex].classIndex;
+    var notFilteredClasses = [];
+    _.each(this._classes, (classComments, index) => {
+      var allCommentsFiltered = true;
+      _.each(classComments.comments, (commentId) => {
+        allCommentsFiltered = allCommentsFiltered && (this._filteredComments[commentId] != undefined);
+      });
 
-    this._maximumFilterIndex = Math.min(this._sortedCommentsScore.length, _.sortedIndex(this._sortedCommentsScore, {commentScore: this._maximumFilter}, 'commentScore'));
-    const maxClass = this._sortedCommentsScore[this._maximumFilterIndex - 1].classIndex;
-
-
-    for (var i = 0 ; i < this._classes.length ; i++) {
-      if((this._classes.length == 1) || (minClass == maxClass)) {
-        // Only one class, give a color does not make any sens
-        this._classes[i].color = '#4a5568';
+      if(!allCommentsFiltered) {
+        notFilteredClasses.push(index);
       }
-      else if((i < minClass) || (i > maxClass)) {
-        // All of this class comments filtered
-        this._classes[i].color = '';
+    });
+
+    for (var i = 0 ; i < notFilteredClasses.length ; i++) {
+      if(notFilteredClasses.length == 1) {
+        // Only one class, give a color does not make any sens
+        this._classes[notFilteredClasses[0]].color = '#4a5568';
       }
       else {
         // Calculate colors from a gradient : red to green (threw yellow)
@@ -279,10 +293,9 @@ const colors = require("../../utils/colors");
           lastColor = BAD_COLOR;
         }
 
-        this._classes[i].color = colors.getGradientColor(firstColor, MIDDLE_COLOR, lastColor, ((maxClass - i) / (maxClass - minClass)));
+        this._classes[notFilteredClasses[i]].color = colors.getGradientColor(firstColor, MIDDLE_COLOR, lastColor, ((notFilteredClasses.length - 1 - i) / (notFilteredClasses.length - 1)));
       }
     }
-
   }
 
 }
