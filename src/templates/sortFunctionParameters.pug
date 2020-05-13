@@ -1,9 +1,15 @@
+- var localize = require('../parameters/localization/localize');
+
 #sortFunctionParameters.hidden.w-full.p-2.flex.flex-col
-  - var val = 30; 
-  - var min = 0;
-  - var max = 100;
-  - var id = 'sortFunctionSlider';
-  - var label = 'Différence relative :';
-  include slider.pug
   
   #sortFunctionDistributionBarChart.w-full
+
+  div.flex
+    - var beforeSlider = localize('SORT_FUNCTION_PARAMETERS') + ' : ';
+    label.m-2 #{beforeSlider}
+    - var val = 30; 
+    - var min = 0;
+    - var max = 100;
+    - var id = 'sortFunctionSlider';
+    - var label = localize('SORT_FUNCTION_PARAMETER_LABEL');
+    include slider.pug

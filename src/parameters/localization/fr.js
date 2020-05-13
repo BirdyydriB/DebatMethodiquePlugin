@@ -5,6 +5,8 @@ module.exports = {
   COMMENT_DATE_WITHOUTYEAR: "DD/MM HH:mm",
 
   SORT_FILTER_BUTTON_LABEL: "Trier/Filtrer",
+  SORT_FUNCTION_PARAMETERS: "Option de tri",
+  SORT_FUNCTION_PARAMETER_LABEL: "différence relative",
   SORT_FUNCTION_BARCHART_X_LABEL: "Pertinence",
   SORT_FUNCTION_BARCHART_LEGEND_THIS: "Filtré par cette fonction",
   SORT_FUNCTION_BARCHART_LEGEND_OTHER: "Filtré par une autre fonction",

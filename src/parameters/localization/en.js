@@ -5,6 +5,8 @@ module.exports = {
   COMMENT_DATE_WITHOUTYEAR: "MM/DD HH:mm",
 
   SORT_FILTER_BUTTON_LABEL: "Sort/Filter",
+  SORT_FUNCTION_PARAMETERS: "Sort option",
+  SORT_FUNCTION_PARAMETER_LABEL: "relative difference",
   SORT_FUNCTION_BARCHART_X_LABEL: "Relevance",
   SORT_FUNCTION_BARCHART_LEGEND_THIS: "Filtered by this function",
   SORT_FUNCTION_BARCHART_LEGEND_OTHER: "Filtered by an other function",
