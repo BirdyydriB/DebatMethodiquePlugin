@@ -69,8 +69,15 @@ class SortedFilteredView {
       this._allSortFunctionsView[sortFunctionModel.id] = sortFunctionView;
     });
 
+
     this._barChart = new sortFunction_barChart.BarChart()
       .init('#sortFunctionDistributionBarChart');
+
+    $('#sortFunctionParameters').removeClass('hidden');
+    $('#sortFunctionsContainer').show();
+    this._barChart.adjustToMainContainerWidth();
+    $('#sortFunctionsContainer').hide();
+    $('#sortFunctionParameters').addClass('hidden');
 
     // Init containers
     for(var i = 0 ; i < _.keys(comments).length ; i++) {
