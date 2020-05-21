@@ -129,7 +129,7 @@ class SortedFilteredView {
 
     // Hide filtered comments
     _.each(this._graphModel.mainSortFunction.filteredComments, (sortFunctionIds, commentId) => {
-      this._graphView.commentsView[commentId].setHeaderColor('');
+      this._graphView.commentsView[commentId].setHeaderColor('filtered');
       this._graphView.commentsView[commentId].commentView.hide();
     });
 
@@ -164,9 +164,12 @@ class SortedFilteredView {
 
   hideSortContainers() {
     $('#commentsContainer').removeClass(['flex', 'flex-col', 'justify-between']);
-    $('.sortContainer:visible').each((index, container) => {
-      $(container).removeClass(['m-2', 'border-l-3', 'border-solid', 'rounded']);
-      $(container).css('border-color', '');
+    $('.sortContainer').each((index, container) => {
+      if($(container).children().length > 0) {
+        $(container).removeClass(['m-2', 'border-l-3', 'border-solid', 'rounded']);
+        $(container).css('border-color', '');
+        $(container).show();
+      }
     });
   }
 
@@ -176,7 +179,7 @@ class SortedFilteredView {
     // And graph coordinates
     $('#graphCoordinates').hide();
 
-    this.showSortContainers();
+    this.sortCommentsToContainers();
 
     _.each(this._graphView.commentsView, (commentView) => {
       // Remove comment selection, only available in Graph mode
@@ -219,9 +222,12 @@ class SortedFilteredView {
       commentView.commentView.addClass('absolute');
       commentView.commentView.removeClass('m-2');
 
-      // Hide again comments that should be hidden
+      // Hide/show again comments that should be hidden/shown
       if(!commentView.commentModel.visible) {
         commentView.commentView.hide();
+      }
+      else {
+        commentView.commentView.show();
       }
     });
   }

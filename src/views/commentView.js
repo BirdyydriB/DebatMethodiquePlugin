@@ -364,8 +364,17 @@ class CommentView {
     */
   setHeaderColor(color) {
     const header = this.commentView.find('.commentHeader');
-    header.css('background-color', color);
-    header.css('color', colors.getTextColorFromBackgroundColor(color));
+
+    if(color == 'filtered') {
+      header.css('background-color', '');
+      header.css('background-image', `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='filteredPatternThis' width='4' height='4' patternTransform='rotate(45)' patternUnits='userSpaceOnUse'%3E%3Crect width='2' height='4' fill='black'%3E%3C/rect%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23filteredPatternThis)'%3E%3C/rect%3E%3C/svg%3E")`);
+      header.css('color', 'white');
+    }
+    else {
+      header.css('background-image', '');
+      header.css('background-color', color);
+      header.css('color', colors.getTextColorFromBackgroundColor(color));
+    }
   }
 
 }
