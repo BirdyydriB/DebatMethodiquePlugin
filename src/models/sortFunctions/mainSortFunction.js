@@ -61,6 +61,8 @@ class MainSortFunction extends sort_function.SortFunction {
       // Link to this._filteredComments
       sortFunction._filteredComments = this._filteredComments;
     });
+
+    return this;
   }
 
 

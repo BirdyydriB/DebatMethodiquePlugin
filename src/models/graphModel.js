@@ -67,10 +67,9 @@ class GraphModel {
     this.initComments();
     this.initRelations();
     this._mainSortFunction = main_sort_function;
-    this._mainSortFunction.init(this);
-    this.buildGrid((commentId) => {
-      return (commentId != null) ? 0 : 1;
-    });
+    this._mainSortFunction.init(this)
+      .classify();
+    this.buildGrid();
 
     return this;
   }
@@ -129,13 +128,23 @@ class GraphModel {
     * Build the grid (Array of Array) of sorted comments
     * @access private
     */
-  buildGrid(sortFunction) {
+  buildGrid() {
     // Reset the grid
     this.grid = new Array2D();
     // Sort rootComments
-    this.rootComments = _.sortBy(this.rootComments, sortFunction);
+    this.rootComments = _.sortBy(this.rootComments, (commentId) => {
+      if(this._mainSortFunction.filteredComments[commentId]) {
+        return 99;
+      }
+      return -this._mainSortFunction.sortedCommentsScore[this._mainSortFunction.commentsIndex[commentId]].classIndex;
+    });
     // Build it
-    this._buildGridRecursive(this.rootComments, 0, 0, sortFunction);
+    this._buildGridRecursive(this.rootComments, 0, 0, (commentId) => {
+      if(this._mainSortFunction.filteredComments[commentId]) {
+        return 99;
+      }
+      return -this._mainSortFunction.sortedCommentsScore[this._mainSortFunction.commentsIndex[commentId]].classIndex;
+    });
     // Trigger change
     $(document).trigger('updateGrig');
   }

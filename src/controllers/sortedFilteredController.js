@@ -377,6 +377,9 @@ class SortedFilteredController {
       commentView.commentView.off('mouseleave');
     });
 
+    // Apply main sorting function to Graph
+    this._graphNavigator.graphModel.buildGrid();
+
     // Force "reset" of selection, to re-build Graph
     const selectedComment = this._sortedFilteredView.graphView.selectedComment;
     this._sortedFilteredView.graphView.setSelectedComment(null);
